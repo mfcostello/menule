@@ -1,7 +1,7 @@
 # MenULE 🍽️
 
 <p align="center">
-    <img src="assets/favicon.ico" alt="Logo MenULE" width="120"/>
+    <img assets="logo_menule.png" alt="Logo MenULE" width="120"/>
 </p>
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
