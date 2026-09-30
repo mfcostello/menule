@@ -1,7 +1,7 @@
-# MenULE 🍽️
+# MenULE
 
 <p align="center">
-    <img assets="logo_menule.png" alt="Logo MenULE" width="120"/>
+    <img src="assets/logo_menule.png" alt="Logo MenULE" width="120"/>
 </p>
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
@@ -16,19 +16,19 @@
 
 ---
 
-## 📋 Índice
+## Índice
 
-- [Características y Roles](#-características-y-roles)
-- [Arquitectura y Tecnologías](#-arquitectura-y-tecnologías)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Requisitos Previos](#-requisitos-previos)
-- [Instalación y Configuración](#-instalación-y-configuración)
-- [Ejecución](#-ejecución)
-- [Autoría](#-autoría)
+- [Características y Roles](#características-y-roles)
+- [Arquitectura y Tecnologías](#arquitectura-y-tecnologías)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación y Configuración](#instalación-y-configuración)
+- [Ejecución](#ejecución)
+- [Autoría](#autoría)
 
 ---
 
-## 👥 Características y Roles
+## Características y Roles
 
 El sistema gestiona de forma diferenciada el acceso según el rol detectado o registrado:
 
@@ -42,7 +42,7 @@ El sistema gestiona de forma diferenciada el acceso según el rol detectado o re
 
 ---
 
-## 🛠️ Arquitectura y Tecnologías
+## Arquitectura y Tecnologías
 
 La aplicación adopta una arquitectura web reactiva basada en estados (*State Management*) y aislamiento de persistencia mediante ORM:
 
@@ -53,7 +53,7 @@ La aplicación adopta una arquitectura web reactiva basada en estados (*State Ma
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```plaintext
 menule/
@@ -69,76 +69,3 @@ menule/
 ├── .env.example                # Plantilla de variables de entorno
 ├── requirements.txt            # Dependencias del proyecto
 └── README.md                   # Documentación principal
-```
-
----
-
-## 💻 Requisitos Previos
-
-Asegúrate de contar con las siguientes herramientas en tu entorno local:
-
-- **Python 3.10 o superior.**
-- **Servidor MySQL (o MariaDB) en ejecución.**
-- **Node.js 18+** (Reflex lo instala o gestiona en segundo plano automáticamente para compilar el frontend).
-
----
-
-## 🚀 Instalación y Configuración
-
-1. **Clonar el repositorio**
-     ```bash
-     git clone https://github.com/tu_usuario/menule.git
-     cd menule
-     ```
-
-2. **Crear y activar un entorno virtual**
-     ```bash
-     python3 -m venv .venv
-
-     # En macOS / Linux:
-     source .venv/bin/activate
-
-     # En Windows:
-     .venv\Scripts\activate
-     ```
-
-3. **Instalar dependencias**
-     ```bash
-     pip install -r requirements.txt
-     ```
-
-4. **Configurar variables de entorno**
-     Crea tu archivo `.env` local a partir de la plantilla `.env.example`:
-     ```bash
-     cp .env.example .env
-     ```
-     Abre `.env` en tu editor de código y define las credenciales de tu servidor MySQL local:
-     ```plaintext
-     DB_HOST=localhost
-     DB_PORT=3306
-     DB_USER=root
-     DB_PASSWORD=tu_contraseña
-     DB_NAME=menule
-     ```
-
----
-
-## ⚡ Ejecución
-
-Con el servidor MySQL activo y la base de datos `menule` creada, inicia la aplicación ejecutando:
-
-```bash
-reflex run
-```
-
-Una vez completado el proceso de compilación inicial, abre tu navegador e ingresa a:
-
-👉 [http://localhost:3000](http://localhost:3000)
-
----
-
-## 👤 Autoría
-
-**Mario Fernández Costello**
-
-- Desarrollo, ingeniería de software y migración a arquitectura web reactiva.
