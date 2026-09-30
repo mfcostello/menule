@@ -1,7 +1,7 @@
 # MenULE
 
 <p align="center">
-    <img src="assets/logo_menule.png" alt="Logo MenULE" width="120"/>
+   <img src="assets/logo_menule.png" alt="Logo MenULE" width="120"/>
 </p>
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
@@ -18,6 +18,7 @@
 
 ## Índice
 
+- [Vista Previa de la Aplicación](#vista-previa-de-la-aplicación)
 - [Características y Roles](#características-y-roles)
 - [Arquitectura y Tecnologías](#arquitectura-y-tecnologías)
 - [Estructura del Proyecto](#estructura-del-proyecto)
@@ -25,6 +26,39 @@
 - [Instalación y Configuración](#instalación-y-configuración)
 - [Ejecución](#ejecución)
 - [Autoría](#autoría)
+
+---
+
+## Vista Previa de la Aplicación
+
+### Autenticación y Registro
+
+| Bienvenida / Inicio de Sesión | Registro de Usuario |
+| :---: | :---: |
+| <img src="assets/preview_welcome.png" width="450"/> | <img src="assets/preview_registro.png" width="450"/> |
+
+---
+
+### Panel de Estudiante y Reserva de Menú
+
+| Dashboard de Estudiante | Selección de Menú del Día |
+| :---: | :---: |
+| <img src="assets/preview_estudiante.png" width="450"/> | <img src="assets/preview_reserva.png" width="450"/> |
+
+<p align="center">
+  <br/>
+  <img src="assets/preview_qr_notificacion.png" alt="Confirmación de Reserva y Código QR" width="750"/>
+  <br/>
+  <em>Confirmación de reserva con generación de código QR y notificación en tiempo real</em>
+</p>
+
+---
+
+### Gestión de Comedor y Administración
+
+| Panel del Personal de Comedor | Panel de Administración Global |
+| :---: | :---: |
+| <img src="assets/preview_comedor.png" width="450"/> | <img src="assets/preview_admin.png" width="450"/> |
 
 ---
 
@@ -64,7 +98,7 @@ menule/
 │   ├── database.py             # Configuración de conexión con SQLAlchemy
 │   ├── models.py               # Modelos/Entidades de la base de datos
 │   └── app.py                  # Punto de entrada y enrutado de Reflex
-├── assets/                     # Recursos estáticos (imágenes, favicons, CSS)
+├── assets/                     # Recursos estáticos e imágenes del proyecto
 ├── database/                   # Scripts de la base de datos MySQL
 │   └── menule_squema.sql       # Esquema completo de tablas, vistas e inserciones
 ├── rxconfig.py                 # Archivo de configuración de Reflex
@@ -87,58 +121,69 @@ Asegúrate de contar con las siguientes herramientas en tu entorno local:
 
 ## Instalación y Configuración
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/tu_usuario/menule.git
-   cd menule
-   ```
+### Clonar el repositorio
 
-2. **Crear y activar un entorno virtual**
-   ```bash
-   python3 -m venv .venv
+```bash
+git clone https://github.com/tu_usuario/menule.git
+cd menule
+```
 
-   # En macOS / Linux:
-   source .venv/bin/activate
+### Crear y activar un entorno virtual
 
-   # En Windows:
-   .venv\Scripts\activate
-   ```
+```bash
+python3 -m venv .venv
 
-3. **Instalar dependencias**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# En macOS / Linux:
+source .venv/bin/activate
 
-4. **Inicializar la Base de Datos**
-   Ejecuta el script SQL incluido en la carpeta `database/` para crear el esquema y las tablas en tu servidor MySQL local:
-   ```bash
-   mysql -u root -p < database/menule_squema.sql
-   ```
+# En Windows:
+.venv\Scripts\activate
+```
 
-5. **Configurar variables de entorno**
-   Crea tu archivo `.env` local a partir de la plantilla `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-   Abre `.env` en tu editor de código y define las credenciales de tu servidor MySQL local:
-   ```plaintext
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_USER=root
-   DB_PASSWORD=tu_contraseña
-   DB_NAME=menule
-   ```
+### Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+### Inicializar la Base de Datos
+
+Ejecuta el script SQL incluido en la carpeta `database/` para crear el esquema y las tablas en tu servidor MySQL local:
+
+```bash
+mysql -u root -p < database/menule_squema.sql
+```
+
+### Configurar variables de entorno
+
+Crea tu archivo `.env` local a partir de la plantilla `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Abre `.env` en tu editor de código y define las credenciales de tu servidor MySQL local:
+
+```plaintext
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=tu_contraseña
+DB_NAME=menule
+```
 
 ---
 
 ## Ejecución
 
 Con el servidor MySQL activo y la base de datos `menule` creada, inicia la aplicación ejecutando:
+
 ```bash
 reflex run
 ```
 
 Una vez completado el proceso de compilación inicial, abre tu navegador e ingresa a:
+
 [http://localhost:3000](http://localhost:3000)
 
 ---
