@@ -65,6 +65,8 @@ menule/
 │   ├── models.py               # Modelos/Entidades de la base de datos
 │   └── app.py                  # Punto de entrada y enrutado de Reflex
 ├── assets/                     # Recursos estáticos (imágenes, favicons, CSS)
+├── database/                   # Scripts de la base de datos MySQL
+│   └── menule_squema.sql       # Esquema completo de tablas, vistas e inserciones
 ├── rxconfig.py                 # Archivo de configuración de Reflex
 ├── .env.example                # Plantilla de variables de entorno
 ├── requirements.txt            # Dependencias del proyecto
@@ -85,61 +87,58 @@ Asegúrate de contar con las siguientes herramientas en tu entorno local:
 
 ## Instalación y Configuración
 
-### Clonar el repositorio
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/tu_usuario/menule.git
+   cd menule
+   ```
 
-```bash
-git clone https://github.com/tu_usuario/menule.git
-cd menule
-```
+2. **Crear y activar un entorno virtual**
+   ```bash
+   python3 -m venv .venv
 
-### Crear y activar un entorno virtual
+   # En macOS / Linux:
+   source .venv/bin/activate
 
-```bash
-python3 -m venv .venv
+   # En Windows:
+   .venv\Scripts\activate
+   ```
 
-# En macOS / Linux:
-source .venv/bin/activate
+3. **Instalar dependencias**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# En Windows:
-.venv\Scripts\activate
-```
+4. **Inicializar la Base de Datos**
+   Ejecuta el script SQL incluido en la carpeta `database/` para crear el esquema y las tablas en tu servidor MySQL local:
+   ```bash
+   mysql -u root -p < database/menule_squema.sql
+   ```
 
-### Instalar dependencias
-
-```bash
-pip install -r requirements.txt
-```
-
-### Configurar variables de entorno
-
-Crea tu archivo `.env` local a partir de la plantilla `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Abre `.env` en tu editor de código y define las credenciales de tu servidor MySQL local:
-
-```plaintext
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=tu_contraseña
-DB_NAME=menule
-```
+5. **Configurar variables de entorno**
+   Crea tu archivo `.env` local a partir de la plantilla `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+   Abre `.env` en tu editor de código y define las credenciales de tu servidor MySQL local:
+   ```plaintext
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=tu_contraseña
+   DB_NAME=menule
+   ```
 
 ---
 
 ## Ejecución
 
 Con el servidor MySQL activo y la base de datos `menule` creada, inicia la aplicación ejecutando:
-
 ```bash
 reflex run
 ```
 
 Una vez completado el proceso de compilación inicial, abre tu navegador e ingresa a:
-
 [http://localhost:3000](http://localhost:3000)
 
 ---
