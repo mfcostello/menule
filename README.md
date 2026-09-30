@@ -124,7 +124,7 @@ Asegúrate de contar con las siguientes herramientas en tu entorno local:
 ### Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu_usuario/menule.git
+git clone https://github.com/perfil/menule.git
 cd menule
 ```
 
