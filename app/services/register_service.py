@@ -1,7 +1,8 @@
 import bcrypt
-from datetime import date
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.models import Usuario
+from app.services.user_service import UserService
 
 
 class RegisterService:
@@ -17,12 +18,12 @@ class RegisterService:
     @staticmethod
     def email_exists(db: Session, email: str) -> bool:
         """Comprueba si un correo ya existe en la BD."""
-        return db.query(Usuario).filter(Usuario.email == email.strip().lower()).first() is not None
+        return UserService.email_exists(db, email)
 
     @staticmethod
     def dni_exists(db: Session, dni: str) -> bool:
         """Comprueba si un DNI ya existe en la BD."""
-        return db.query(Usuario).filter(Usuario.dni == dni.strip().upper()).first() is not None
+        return UserService.dni_exists(db, dni)
 
     @staticmethod
     def register_user(
@@ -34,24 +35,21 @@ class RegisterService:
         dni: str,
         telefono: str,
         tipo: str,
+        grado: Optional[str] = None,
+        especialidad: Optional[str] = None,
     ) -> Usuario:
-        """Crea y guarda el usuario con la contraseña procesada con bcrypt."""
+        """Crea el usuario y su perfil institucional (Estudiante, Profesor, Personal de Comedor)."""
         password_hashed = RegisterService.hash_password(password)
 
-        nuevo_usuario = Usuario(
-            dni=dni.strip().upper(),
-            nombre=nombre.strip(),
-            apellido=apellido.strip(),
-            email=email.strip().lower(),
+        return UserService.create_user(
+            db=db,
+            nombre=nombre,
+            apellido=apellido,
+            email=email,
             contrasena_hash=password_hashed,
-            telefono=telefono.strip(),
-            fecha_alta=date.today(),
-            credencial_activa=True,
             tipo=tipo,
+            dni=dni,
+            telefono=telefono,
+            grado=grado,
+            especialidad=especialidad,
         )
-
-        db.add(nuevo_usuario)
-        db.commit()
-        db.refresh(nuevo_usuario)
-
-        return nuevo_usuario

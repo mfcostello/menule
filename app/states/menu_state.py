@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.database import SessionLocal
 from app.services.menu_service import MenuService
+from app.services.reserva_service import ReservaService
 from app.models import Plato, Reserva, Pago, Estudiante, Profesor
 from app.states.auth_state import AppState
 

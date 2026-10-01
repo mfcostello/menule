@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-# Tabla intermedia M:N entre Menus y Platos
+# Tabla intermedia M:N entre Menus y Platos ofertados
 menu_platos = Table(
     "MenuPlatos",
     Base.metadata,
@@ -33,7 +33,7 @@ menu_platos = Table(
     ),
 )
 
-# 🛠️ NUEVA: Tabla intermedia M:N entre Reservas y Platos elegidos
+# Tabla intermedia M:N entre Reservas y Platos específicamente seleccionados
 reserva_platos = Table(
     "ReservaPlatos",
     Base.metadata,
@@ -76,8 +76,8 @@ class Usuario(Base):
         nullable=False,
     )
 
-    reservas = relationship("Reserva", back_populates="usuario")
-    pagos = relationship("Pago", back_populates="usuario")
+    reservas = relationship("Reserva", back_populates="usuario", cascade="all, delete-orphan")
+    pagos = relationship("Pago", back_populates="usuario", cascade="all, delete-orphan")
     incidencias = relationship(
         "Incidencia",
         foreign_keys="Incidencia.id_usuario",
@@ -89,8 +89,24 @@ class Usuario(Base):
         back_populates="responsable",
     )
 
-    estudiante_info = relationship("Estudiante", uselist=False, back_populates="usuario")
-    profesor_info = relationship("Profesor", uselist=False, back_populates="usuario")
+    estudiante_info = relationship(
+        "Estudiante",
+        uselist=False,
+        back_populates="usuario",
+        cascade="all, delete-orphan",
+    )
+    profesor_info = relationship(
+        "Profesor",
+        uselist=False,
+        back_populates="usuario",
+        cascade="all, delete-orphan",
+    )
+    personal_comedor_info = relationship(
+        "PersonalComedor",
+        uselist=False,
+        back_populates="usuario",
+        cascade="all, delete-orphan",
+    )
 
 
 class Estudiante(Base):
@@ -101,8 +117,8 @@ class Estudiante(Base):
         ForeignKey("Usuarios.id_usuario", ondelete="CASCADE"),
         primary_key=True,
     )
-    grado_academico = Column(String(50))
-    tui_numero = Column(String(20), unique=True)
+    grado_academico = Column(String(100))
+    tui_numero = Column(String(30), unique=True)
     saldo = Column(Numeric(10, 2), default=0.00)
 
     usuario = relationship("Usuario", back_populates="estudiante_info")
@@ -116,11 +132,25 @@ class Profesor(Base):
         ForeignKey("Usuarios.id_usuario", ondelete="CASCADE"),
         primary_key=True,
     )
-    grado_academico = Column(String(50))
-    tui_numero = Column(String(20), unique=True)
+    grado_academico = Column(String(100))
+    tui_numero = Column(String(30), unique=True)
     saldo = Column(Numeric(10, 2), default=0.00)
 
     usuario = relationship("Usuario", back_populates="profesor_info")
+
+
+class PersonalComedor(Base):
+    __tablename__ = "PersonalComedor"
+
+    id_usuario = Column(
+        Integer,
+        ForeignKey("Usuarios.id_usuario", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    fecha_contratacion = Column(Date)
+    especialidad = Column(String(100))
+
+    usuario = relationship("Usuario", back_populates="personal_comedor_info")
 
 
 class Ingrediente(Base):
@@ -132,7 +162,7 @@ class Ingrediente(Base):
     stock_actual = Column(Numeric(10, 2), default=0.0)
     stock_minimo = Column(Numeric(10, 2), default=0.0)
     alergeno = Column(Boolean, default=False)
-    tipo_alergeno = Column(String(50))
+    tipo_alergeno = Column(String(50), default="Ninguno")
 
 
 class Plato(Base):
@@ -161,10 +191,10 @@ class Menu(Base):
         ),
         nullable=False,
     )
-    max_reservas = Column(Integer)
+    max_reservas = Column(Integer, default=150)
     disponible = Column(Boolean, default=True)
 
-    reservas = relationship("Reserva", back_populates="menu")
+    reservas = relationship("Reserva", back_populates="menu", cascade="all, delete-orphan")
     platos = relationship("Plato", secondary=menu_platos, back_populates="menus")
 
 
@@ -174,12 +204,12 @@ class Reserva(Base):
     id_reserva = Column(Integer, primary_key=True, autoincrement=True)
     id_usuario = Column(
         Integer,
-        ForeignKey("Usuarios.id_usuario"),
+        ForeignKey("Usuarios.id_usuario", ondelete="CASCADE"),
         nullable=False,
     )
     id_menu = Column(
         Integer,
-        ForeignKey("Menus.id_menu"),
+        ForeignKey("Menus.id_menu", ondelete="CASCADE"),
         nullable=False,
     )
     fecha_reserva = Column(DateTime, nullable=False)
@@ -193,13 +223,13 @@ class Reserva(Base):
         ),
         default="pendiente",
     )
-    estado_bit = Column(Boolean)
+    estado_bit = Column(Boolean, default=False)
 
     usuario = relationship("Usuario", back_populates="reservas")
     menu = relationship("Menu", back_populates="reservas")
     pagos = relationship("Pago", back_populates="reserva")
     
-    # 🛠️ RELACIÓN DIRECTA A LOS PLATOS ELEGIDOS EN ESTA RESERVA
+    # Platos concretos seleccionados en esta comanda
     platos = relationship("Plato", secondary=reserva_platos)
 
 
@@ -209,12 +239,13 @@ class Pago(Base):
     id_pago = Column(Integer, primary_key=True, autoincrement=True)
     id_usuario = Column(
         Integer,
-        ForeignKey("Usuarios.id_usuario"),
+        ForeignKey("Usuarios.id_usuario", ondelete="CASCADE"),
         nullable=False,
     )
     id_reserva = Column(
         Integer,
-        ForeignKey("Reservas.id_reserva"),
+        ForeignKey("Reservas.id_reserva", ondelete="SET NULL"),
+        nullable=True,
     )
     monto = Column(Numeric(10, 2), nullable=False)
     metodo = Column(
@@ -251,11 +282,11 @@ class Incidencia(Base):
     id_incidencia = Column(Integer, primary_key=True, autoincrement=True)
     id_usuario = Column(
         Integer,
-        ForeignKey("Usuarios.id_usuario"),
+        ForeignKey("Usuarios.id_usuario", ondelete="SET NULL"),
     )
     id_responsable = Column(
         Integer,
-        ForeignKey("Usuarios.id_usuario"),
+        ForeignKey("Usuarios.id_usuario", ondelete="SET NULL"),
     )
     titulo = Column(String(100), nullable=False)
     descripcion = Column(Text, nullable=False)

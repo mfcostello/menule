@@ -13,6 +13,7 @@ class PagoSchema(BaseModel):
     id_usuario: int
     id_reserva: Optional[int] = None
     monto: float
+    monto_str: str = ""
     metodo: str
     fecha_pago: str
     estado: str
@@ -82,7 +83,7 @@ class PagoState(rx.State):
                         self.saldo_actual = float(prof.saldo or 0.0)
                         self.numero_tui = getattr(prof, "tui_numero", None) or f"TUI-{app_state.user_id:06d}"
 
-                # 🎯 Actualizamos el saldo del Sidebar
+                # Actualizamos el saldo en AppState para mantener sincronizado el Sidebar
                 app_state.user_saldo = self.saldo_actual
 
             # 2. Cargar historial de pagos
@@ -98,6 +99,7 @@ class PagoState(rx.State):
                     id_usuario=p.id_usuario or 0,
                     id_reserva=p.id_reserva,
                     monto=float(p.monto or 0.0),
+                    monto_str=f"{float(p.monto or 0.0):.2f} €",
                     metodo=(p.metodo or "tarjeta").lower(),
                     fecha_pago=p.fecha_pago.strftime("%Y-%m-%d %H:%M") if hasattr(p.fecha_pago, "strftime") else str(p.fecha_pago),
                     estado=(p.estado or "completado").lower(),
@@ -135,7 +137,6 @@ class PagoState(rx.State):
                 )
 
                 if exito:
-                    # 🛠️ Obtener saldo exacto tras commit
                     nuevo_saldo = 0.0
                     est = db.query(Estudiante).filter(Estudiante.id_usuario == app_state.user_id).first()
                     if est:
@@ -145,20 +146,20 @@ class PagoState(rx.State):
                         if prof:
                             nuevo_saldo = float(prof.saldo or 0.0)
 
-                    # 🛠️ Sincronizar Sidebar y Vista Monedero
+                    # Sincronizar Sidebar y Vista Monedero
                     app_state.user_saldo = nuevo_saldo
                     self.saldo_actual = nuevo_saldo
 
             if exito:
                 msg = f"🎉 ¡Recarga de {monto_val:.2f} € realizada con éxito!"
                 app_state.agregar_notificacion(msg)
-
                 self.monto_recarga = "10"
-
                 return [
                     PagoState.load_pagos,
-                    rx.window_alert(f"¡Recarga completada! Tu nuevo saldo es: {app_state.user_saldo:.2f} €")
+                    rx.window_alert(f"¡Recarga completada! Tu nuevo saldo es: {app_state.user_saldo:.2f} €"),
                 ]
+            else:
+                return rx.window_alert("No se pudo completar la recarga. Perfil de monedero no encontrado.")
 
         except ValueError:
             return rx.window_alert("El importe introducido no es un número válido.")

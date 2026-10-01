@@ -13,7 +13,7 @@ class ReservaService:
         query = db.query(Reserva).options(
             joinedload(Reserva.usuario),
             joinedload(Reserva.menu),
-            joinedload(Reserva.platos)  # 👈 Carga de platos seleccionados
+            joinedload(Reserva.platos),
         )
 
         if search_text.strip():
@@ -31,30 +31,76 @@ class ReservaService:
         reserva = db.query(Reserva).filter(Reserva.id_reserva == id_reserva).first()
         if reserva:
             reserva.estado = estado
-            reserva.estado_bit = estado_bit
+            reserva.estado_bit = bool(estado_bit)
             db.commit()
             db.refresh(reserva)
         return reserva
 
     @staticmethod
-    def crear_reserva_visitante(db: Session, id_menu: int, platos_ids: List[int], email_visitante: str) -> int:
-        """Crea una reserva anónima vinculada al id_usuario = 0 y registra su pago por tarjeta (7,50 €)."""
-        # 1. Obtener las instancias de los platos seleccionados
-        platos_objetos = db.query(Plato).filter(Plato.id_plato.in_(platos_ids)).all()
+    def crear_reserva_usuario(
+        db: Session,
+        id_usuario: int,
+        id_menu: int,
+        platos_ids: List[int],
+        monto: float,
+        metodo: str = "tui",
+    ) -> Reserva:
+        """
+        Crea una reserva confirmada para un usuario registrado, asigna platos y
+        genera el registro de Pago completado correspondiente para coherencia estadística.
+        """
+        platos_objetos = []
+        if platos_ids:
+            platos_objetos = db.query(Plato).filter(Plato.id_plato.in_(platos_ids)).all()
 
-        # 2. Crear la reserva para id_usuario = 0
+        nueva_reserva = Reserva(
+            id_usuario=id_usuario,
+            id_menu=id_menu,
+            fecha_reserva=datetime.now(),
+            estado="confirmada",
+            estado_bit=False,  # 0 = Pendiente de recogida en cocina
+            platos=platos_objetos,
+        )
+        db.add(nueva_reserva)
+        db.flush()
+
+        nuevo_pago = Pago(
+            id_usuario=id_usuario,
+            id_reserva=nueva_reserva.id_reserva,
+            monto=monto,
+            metodo=metodo,
+            fecha_pago=datetime.now(),
+            estado="completado",
+        )
+        db.add(nuevo_pago)
+        db.commit()
+        db.refresh(nueva_reserva)
+
+        return nueva_reserva
+
+    @staticmethod
+    def crear_reserva_visitante(
+        db: Session,
+        id_menu: int,
+        platos_ids: List[int],
+        email_visitante: str,
+    ) -> int:
+        """Crea una reserva anónima vinculada al id_usuario = 0 y registra su pago por tarjeta (7,50 €)."""
+        platos_objetos = []
+        if platos_ids:
+            platos_objetos = db.query(Plato).filter(Plato.id_plato.in_(platos_ids)).all()
+
         nueva_reserva = Reserva(
             id_usuario=0,  # ID reservado para visitantes
             id_menu=id_menu,
             fecha_reserva=datetime.now(),
             estado="confirmada",
-            platos=platos_objetos  # SQLAlchemy maneja la tabla 'reserva_platos' automáticamente
+            estado_bit=False,  # 0 = Pendiente de recogida en cocina
+            platos=platos_objetos,
         )
         db.add(nueva_reserva)
-        db.commit()
-        db.refresh(nueva_reserva)
+        db.flush()
 
-        # 3. Registrar el pago por tarjeta a tarifa general (7.50 €)
         nuevo_pago = Pago(
             id_reserva=nueva_reserva.id_reserva,
             id_usuario=0,
@@ -62,7 +108,7 @@ class ReservaService:
             metodo="tarjeta",
             estado="completado",
             correo=email_visitante,
-            fecha_pago=datetime.now()
+            fecha_pago=datetime.now(),
         )
         db.add(nuevo_pago)
         db.commit()

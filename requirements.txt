@@ -1,9 +1,8 @@
-reflex
-sqlalchemy
-mysql-connector-python
-python-dotenv
-bcrypt
-pydantic
-sendgrid
-qrcode
-pymysql
+reflex>=0.6.0
+sqlalchemy>=2.0.0
+pymysql>=1.1.0
+cryptography>=41.0.0
+python-dotenv>=1.0.0
+bcrypt>=4.0.0
+pydantic>=2.0.0
+qrcode>=7.4.0

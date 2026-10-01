@@ -18,7 +18,7 @@ class RegisterState(rx.State):
     dni: str = ""
     telefono: str = ""
 
-    # Campos visuales
+    # Campos específicos según rol
     grado: str = ""
     especialidad: str = ""
 
@@ -134,6 +134,7 @@ class RegisterState(rx.State):
                     self.is_loading = False
                     return
 
+                # Registrar usuario persistiendo el perfil institucional completo
                 RegisterService.register_user(
                     db=db,
                     nombre=nombre,
@@ -143,6 +144,8 @@ class RegisterState(rx.State):
                     dni=dni,
                     telefono=telefono,
                     tipo=self.tipo,
+                    grado=self.grado.strip(),
+                    especialidad=self.especialidad.strip(),
                 )
 
             self.success_message = "Cuenta creada correctamente. Redirigiendo al login..."
@@ -161,7 +164,7 @@ class RegisterState(rx.State):
 
             self.is_loading = False
             
-            await asyncio.sleep(2)
+            await asyncio.sleep(1.5)
             return rx.redirect("/")
 
         except Exception as e:
