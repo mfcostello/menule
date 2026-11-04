@@ -187,7 +187,7 @@ def vista_estudiante() -> rx.Component:
         modal_nueva_incidencia(),
         rx.hstack(
             rx.vstack(
-                rx.heading("Mis Incidencias", size="8"),
+                rx.heading("Mis Incidencias", size=rx.breakpoints(initial="6", sm="8")),
                 rx.text(
                     "Consulta el estado de tus reportes o envía un nuevo comunicado al soporte.",
                     color="gray",
@@ -206,6 +206,7 @@ def vista_estudiante() -> rx.Component:
             ),
             width="100%",
             align="center",
+            flex_wrap="wrap",
         ),
         rx.card(
             rx.table.root(
@@ -261,7 +262,7 @@ def vista_administrador() -> rx.Component:
     return rx.vstack(
         modal_responder_incidencia(),
         rx.vstack(
-            rx.heading("Gestión de Incidencias", size="8"),
+            rx.heading("Gestión de Incidencias", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Atiende, gestiona y resuelve los reportes recibidos de estudiantes y personal.",
                 color="gray",
@@ -303,9 +304,11 @@ def vista_administrador() -> rx.Component:
             rx.hstack(
                 rx.input(
                     placeholder="Buscar por Título, Cód. Seguimiento o Correo...",
+                    min_width="180px",
+                    flex="1",
                     value=IncidenciaState.search_text,
                     on_change=IncidenciaState.set_search_text,
-                    width="340px",
+                    width="100%", max_width="340px",
                     radius="large",
                 ),
                 rx.button(
@@ -321,12 +324,16 @@ def vista_administrador() -> rx.Component:
                     rx.segmented_control.item("Todos", value="todos"),
                     rx.segmented_control.item("En proceso", value="en_proceso"),
                     rx.segmented_control.item("Resuelta", value="resuelta"),
+                    size=rx.breakpoints(initial="1", sm="2"),
+                    max_width="100%",
+                    overflow_x="auto",
                     value=IncidenciaState.filtro_estado,
                     on_change=IncidenciaState.set_filtro_estado,
                     radius="large",
                 ),
                 width="100%",
                 align="center",
+                flex_wrap="wrap",
             ),
             width="100%",
             padding="1.25em",

@@ -263,7 +263,7 @@ def users_page():
             rx.vstack(
                 rx.heading(
                     "Usuarios",
-                    size="8",
+                    size=rx.breakpoints(initial="6", sm="8"),
                 ),
                 rx.text(
                     "Gestiona las cuentas registradas en MenULE.",
@@ -277,9 +277,11 @@ def users_page():
                 rx.hstack(
                     rx.input(
                         placeholder="Buscar usuario...",
+                    min_width="180px",
+                    flex="1",
                         value=UserState.search_text,
                         on_change=UserState.set_search_text,
-                        width="340px",
+                        width="100%", max_width="340px",
                         radius="large",
                     ),
                     rx.button(
@@ -300,6 +302,7 @@ def users_page():
                     ),
                     width="100%",
                     align="center",
+                    flex_wrap="wrap",
                 ),
                 width="100%",
                 padding="1.25em",

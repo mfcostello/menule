@@ -86,7 +86,7 @@ def user_pagos_view() -> rx.Component:
     return rx.vstack(
         # Cabecera
         rx.vstack(
-            rx.heading("Mi Monedero TUI", size="8"),
+            rx.heading("Mi Monedero TUI", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Consulta tu saldo disponible, recarga crédito y revisa tus movimientos.",
                 color="gray",
@@ -110,7 +110,7 @@ def user_pagos_view() -> rx.Component:
                     rx.spacer(),
                     rx.vstack(
                         rx.text("Saldo Disponible", size="2", color="#E5E7EB"),
-                        rx.heading(f"{PagoState.saldo_actual:.2f} €", size="9", color="white", weight="bold"),
+                        rx.heading(PagoState.saldo_actual_str, size="9", color="white", weight="bold"),
                         align_items="start",
                         spacing="1",
                     ),
@@ -204,7 +204,7 @@ def user_pagos_view() -> rx.Component:
                             lambda p: rx.table.row(
                                 rx.table.cell(f"#{p.id_pago}"),
                                 rx.table.cell(
-                                    rx.text(f"{p.monto:.2f} €", weight="bold")
+                                    rx.text(p.monto_str, weight="bold")
                                 ),
                                 rx.table.cell(badge_metodo(p.metodo)),
                                 rx.table.cell(
@@ -241,7 +241,7 @@ def admin_pagos_view() -> rx.Component:
     return rx.vstack(
         # Cabecera
         rx.vstack(
-            rx.heading("Auditoría de Pagos", size="8"),
+            rx.heading("Auditoría de Pagos", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Registro global de transacciones financieras y estados de cobro.",
                 color="gray",
@@ -253,7 +253,7 @@ def admin_pagos_view() -> rx.Component:
 
         # Fila de Métricas / KPIs
         rx.grid(
-            kpi_card("Recaudación Total", f"{PagoState.kpi_ingresos:.2f} €", "circle-dollar-sign", "green"),
+            kpi_card("Recaudación Total", PagoState.kpi_ingresos_str, "circle-dollar-sign", "green"),
             kpi_card("Transacciones", f"{PagoState.kpi_operaciones}", "receipt", "blue"),
             kpi_card("Uso TUI / Bono", f"{PagoState.kpi_tui_bono}", "credit-card", "purple"),
             kpi_card("Pagos Visitantes", f"{PagoState.kpi_visitantes}", "users", "orange"),
@@ -267,9 +267,11 @@ def admin_pagos_view() -> rx.Component:
             rx.hstack(
                 rx.input(
                     placeholder="Buscar por ID, Reserva o Correo...",
+                    min_width="180px",
+                    flex="1",
                     value=PagoState.search_text,
                     on_change=PagoState.set_search_text,
-                    width="320px",
+                    width="100%", max_width="320px",
                     radius="large",
                 ),
                 rx.button(
@@ -287,12 +289,16 @@ def admin_pagos_view() -> rx.Component:
                     rx.segmented_control.item("Bono", value="bono"),
                     rx.segmented_control.item("Tarjeta", value="tarjeta"),
                     rx.segmented_control.item("Efectivo", value="efectivo"),
+                    size=rx.breakpoints(initial="1", sm="2"),
+                    max_width="100%",
+                    overflow_x="auto",
                     value=PagoState.filtro_metodo,
                     on_change=PagoState.set_filtro_metodo,
                     radius="large",
                 ),
                 width="100%",
                 align="center",
+                flex_wrap="wrap",
             ),
             width="100%",
             padding="1.25em",
@@ -327,7 +333,7 @@ def admin_pagos_view() -> rx.Component:
                                 )
                             ),
                             rx.table.cell(
-                                rx.text(f"{p.monto:.2f} €", weight="bold")
+                                rx.text(p.monto_str, weight="bold")
                             ),
                             rx.table.cell(badge_metodo(p.metodo)),
                             rx.table.cell(selector_estado_interactivo(p)),

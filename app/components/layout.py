@@ -1,26 +1,6 @@
 import reflex as rx
-from datetime import datetime
-from app.components.sidebar import sidebar
+from app.components.sidebar import sidebar, menu_movil
 from app.states.auth_state import AppState
-
-
-def _fecha_hoy_es() -> str:
-    meses = [
-        "enero", "febrero", "marzo", "abril", "mayo", "junio",
-        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-    ]
-    hoy = datetime.now()
-    return f"{hoy.day} {meses[hoy.month - 1]} {hoy.year}"
-
-
-def _saludo_segun_hora() -> str:
-    hora = datetime.now().hour
-    if 5 <= hora < 12:
-        return "Buenos días, "
-    elif 12 <= hora < 20:
-        return "Buenas tardes, "
-    else:
-        return "Buenas noches, "
 
 
 def campana_notificaciones() -> rx.Component:
@@ -93,7 +73,7 @@ def campana_notificaciones() -> rx.Component:
                     rx.text("Sin avisos pendientes.", size="2", color="#6B7280"),
                 ),
                 spacing="2",
-                width="320px",
+                width="min(320px, 80vw)",
                 padding="0.5em",
             ),
             align="end",
@@ -181,35 +161,30 @@ def menu_usuario_dropdown() -> rx.Component:
 
 def navbar() -> rx.Component:
     return rx.hstack(
+        menu_movil(),
         rx.vstack(
-            rx.text("MenULE", size="2", color="#6B7280"),
+            rx.text(
+                AppState.fecha_hoy_str,
+                size="2",
+                color="#6B7280",
+                display=rx.breakpoints(initial="none", sm="block"),
+            ),
             rx.heading(
-                rx.text(_saludo_segun_hora(), AppState.user_name),
-                size="5",
+                AppState.saludo_actual + AppState.user_name,
+                size=rx.breakpoints(initial="3", sm="5"),
                 weight="bold",
                 color="#111827",
+                style={"overflow": "hidden", "textOverflow": "ellipsis", "whiteSpace": "nowrap"},
+                max_width="100%",
             ),
-            rx.text(_fecha_hoy_es(), size="2", color="#6B7280"),
             spacing="0",
             align_items="start",
+            min_width="0",
+            flex="1",
         ),
-        rx.spacer(),
         rx.hstack(
-            # Buscador estilizado con icono de lupa integrado
-            rx.input(
-                rx.input.slot(rx.icon("search", size=16, color="gray")),
-                placeholder="Buscar en el sistema...",
-                width="220px",
-                size="2",
-                radius="large",
-                variant="surface",
-            ),
-            # Campana individual conectada a AppState
             campana_notificaciones(),
-            
-            # Avatar con Menú Desplegable Profesional
             menu_usuario_dropdown(),
-
             rx.button(
                 rx.icon("log-out", size=16),
                 "Cerrar sesión",
@@ -218,12 +193,15 @@ def navbar() -> rx.Component:
                 size="2",
                 radius="large",
                 on_click=AppState.logout,
+                display=rx.breakpoints(initial="none", md="flex"),
             ),
             spacing="3",
             align="center",
+            flex_shrink="0",
         ),
         width="100%",
-        padding="0.9em 1.2em",
+        spacing="3",
+        padding=rx.breakpoints(initial="0.7em 1em", sm="0.9em 1.2em"),
         background="rgba(255,255,255,0.88)",
         style={
             "backdropFilter": "blur(8px)",
@@ -244,12 +222,14 @@ def layout(page_content: rx.Component) -> rx.Component:
             navbar(),
             rx.box(
                 page_content,
-                padding="1.25em",
+                padding=rx.breakpoints(initial="0.9em", sm="1.25em"),
                 width="100%",
                 max_width="1600px",
                 margin="0 auto",
+                min_width="0",
             ),
             flex="1",
+            min_width="0",  # permite que el contenido se encoja en pantallas estrechas
             min_height="100vh",
             background="#F8FAFC",
             spacing="0",

@@ -186,7 +186,7 @@ def visitante_reserva_content() -> rx.Component:
                         VisitanteState.postre_sel, 
                         VisitanteState.set_postre_sel
                     ),
-                    columns="3",
+                    columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                     spacing="4",
                     width="100%",
                 ),

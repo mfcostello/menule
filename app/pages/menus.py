@@ -317,7 +317,7 @@ def comedor_menus_view() -> rx.Component:
     """Vista Operativa para Personal de Comedor."""
     return rx.vstack(
         rx.vstack(
-            rx.heading("Panel de Personal de Comedor", size="8"),
+            rx.heading("Panel de Personal de Comedor", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Gestión operativa diaria: edición de menú, control de alérgenos y seguimiento de comandas.",
                 color="gray",
@@ -376,7 +376,7 @@ def comedor_menus_view() -> rx.Component:
                 cursor="pointer",
                 padding="1.2em",
             ),
-            columns="3",
+            columns=rx.breakpoints(initial="1", sm="2", lg="3"),
             spacing="4",
             width="100%",
         ),
@@ -389,9 +389,11 @@ def comedor_menus_view() -> rx.Component:
                     rx.spacer(),
                     rx.input(
                         placeholder="Buscar por fecha...",
+                    min_width="180px",
+                    flex="1",
                         value=MenuState.search_text,
                         on_change=MenuState.set_search_text,
-                        width="240px",
+                        width="100%", max_width="240px",
                     ),
                     rx.button(
                         rx.icon("search", size=16),
@@ -402,6 +404,7 @@ def comedor_menus_view() -> rx.Component:
                     ),
                     width="100%",
                     align="center",
+                    flex_wrap="wrap",
                 ),
                 rx.table.root(
                     rx.table.header(
@@ -471,7 +474,7 @@ def admin_menus_view() -> rx.Component:
     """Vista de Administración Global de Menús (Admin)."""
     return rx.vstack(
         rx.vstack(
-            rx.heading("Gestión General de Menús (Admin)", size="8"),
+            rx.heading("Gestión General de Menús (Admin)", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Administración completa de la oferta gastronómica y borrado de registros.",
                 color="gray",
@@ -485,9 +488,11 @@ def admin_menus_view() -> rx.Component:
             rx.hstack(
                 rx.input(
                     placeholder="Buscar menú...",
+                    min_width="180px",
+                    flex="1",
                     value=MenuState.search_text,
                     on_change=MenuState.set_search_text,
-                    width="340px",
+                    width="100%", max_width="340px",
                     radius="large",
                     size="3",
                 ),
@@ -510,6 +515,7 @@ def admin_menus_view() -> rx.Component:
                 ),
                 width="100%",
                 align="center",
+                flex_wrap="wrap",
             ),
             width="100%",
             padding="1.25em",
@@ -752,7 +758,7 @@ def user_menu_view() -> rx.Component:
                     section_platos("Primer Plato", "soup", MenuState.platos_primeros, MenuState.plato_1_sel, MenuState.set_plato_1_sel, es_visitante),
                     section_platos("Segundo Plato", "utensils", MenuState.platos_segundos, MenuState.plato_2_sel, MenuState.set_plato_2_sel, es_visitante),
                     section_platos("Postre", "apple", MenuState.platos_postres, MenuState.postre_sel, MenuState.set_postre_sel, es_visitante),
-                    columns="3",
+                    columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                     spacing="4",
                     width="100%",
                 ),

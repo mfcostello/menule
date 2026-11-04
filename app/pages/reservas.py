@@ -9,7 +9,7 @@ def admin_reservas_view() -> rx.Component:
     """Vista de Administración Global de Reservas (Admin / Personal de Comedor)."""
     return rx.vstack(
         rx.vstack(
-            rx.heading("Gestión Global de Reservas", size="8"),
+            rx.heading("Gestión Global de Reservas", size=rx.breakpoints(initial="6", sm="8")),
             rx.text("Supervisión y control de todas las reservas realizadas en el comedor.", color="gray"),
             align_items="start",
             spacing="1",
@@ -21,9 +21,11 @@ def admin_reservas_view() -> rx.Component:
             rx.hstack(
                 rx.input(
                     placeholder="Buscar por ID de reserva o usuario...",
+                    min_width="180px",
+                    flex="1",
                     value=ReservaState.search_text,
                     on_change=ReservaState.set_search_text,
-                    width="360px",
+                    width="100%", max_width="360px",
                     radius="large",
                     size="3",
                 ),
@@ -38,6 +40,7 @@ def admin_reservas_view() -> rx.Component:
                 rx.spacer(),
                 width="100%",
                 align="center",
+                flex_wrap="wrap",
             ),
             width="100%",
             padding="1.25em",
@@ -257,7 +260,7 @@ def user_reservas_view() -> rx.Component:
                                 rx.image(
                                     src=f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TICKET_{res.id_reserva}",
                                     alt="Código QR de Validación",
-                                    width="130px",
+                                    width="100%", max_width="130px",
                                     height="130px",
                                 ),
                                 width="100%",
@@ -283,7 +286,7 @@ def user_reservas_view() -> rx.Component:
                         style={"borderRadius": "16px"},
                     ),
                 ),
-                columns="3",
+                columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                 spacing="4",
                 width="100%",
             ),

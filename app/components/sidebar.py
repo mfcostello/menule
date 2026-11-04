@@ -103,64 +103,126 @@ def _grouped_items() -> rx.Component:
     )
 
 
-def sidebar() -> rx.Component:
-    return rx.box(
-        rx.vstack(
-            rx.hstack(
-                rx.image(src="/logo_menule.png", width="34px", height="34px"),
-                rx.heading("MenULE", size="6", weight="bold", color="#111827"),
-                spacing="3",
-                align="center",
-                width="100%",
+def _tarjeta_usuario() -> rx.Component:
+    return rx.card(
+        rx.hstack(
+            rx.vstack(
+                rx.text(AppState.user_name, weight="bold", size="2", color="#111827"),
+                rx.text(AppState.user_role, size="1", color="#6B7280"),
+                spacing="0",
+                align_items="start",
+                min_width="0",
             ),
-            rx.divider(),
-            _grouped_items(),
             rx.spacer(),
-            rx.card(
-                rx.vstack(
-                    rx.hstack(
-                        rx.vstack(
-                            rx.text(AppState.user_name, weight="bold", size="2", color="#111827"),
-                            rx.text(AppState.user_role, size="1", color="#6B7280"),
-                            spacing="0",
-                            align_items="start",
-                        ),
-                        rx.spacer(),
-                        rx.cond(
-                            (AppState.is_estudiante | AppState.is_profesor),
-                            rx.badge(
-                                AppState.user_saldo.to_string() + " €",
-                                color_scheme="violet",
-                                variant="soft",
-                                radius="full",
-                            ),
-                        ),
-                        align="center",
-                        width="100%",
-                    ),
-                    spacing="1",
-                    width="100%",
+            rx.cond(
+                (AppState.is_estudiante | AppState.is_profesor),
+                rx.badge(
+                    AppState.user_saldo_str,
+                    color_scheme="violet",
+                    variant="soft",
+                    radius="full",
                 ),
-                width="100%",
-                padding="0.8em 0.9em",
-                style={
-                    "borderRadius": "14px",
-                    "border": "1px solid #E5E7EB",
-                    "background": "white",
-                },
             ),
-            spacing="4",
+            align="center",
             width="100%",
-            height="100%",
-            align_items="stretch",
         ),
-        width="272px",
-        min_width="272px",
-        max_width="272px",
-        padding="1.2em",
-        border_right="1px solid #E5E7EB",
-        background="white",
-        position="sticky",
-        top="0",
-        height="100vh",
+        width="100%",
+        padding="0.8em 0.9em",
+        style={
+            "borderRadius": "14px",
+            "border": "1px solid #E5E7EB",
+            "background": "white",
+        },
+    )
+
+
+def _logo() -> rx.Component:
+    return rx.hstack(
+        rx.image(src="/logo_menule.png", width="34px", height="34px"),
+        rx.heading("MenULE", size="6", weight="bold", color="#111827"),
+        spacing="3",
+        align="center",
+    )
+
+
+def contenido_navegacion() -> rx.Component:
+    """Logo, enlaces por rol y tarjeta de usuario (compartido por escritorio y móvil)."""
+    return rx.vstack(
+        _logo(),
+        rx.divider(),
+        _grouped_items(),
+        rx.spacer(),
+        _tarjeta_usuario(),
+        spacing="4",
+        width="100%",
+        height="100%",
+        align_items="stretch",
+    )
+
+
+def sidebar() -> rx.Component:
+    """Barra lateral fija, solo en pantallas grandes (>= 62em)."""
+    return rx.desktop_only(
+        rx.box(
+            contenido_navegacion(),
+            width="272px",
+            min_width="272px",
+            padding="1.2em",
+            border_right="1px solid #E5E7EB",
+            background="white",
+            position="sticky",
+            top="0",
+            height="100vh",
+            overflow_y="auto",
+        ),
+    )
+
+
+def menu_movil() -> rx.Component:
+    """Botón hamburguesa + panel deslizante con la navegación (móvil y tablet)."""
+    return rx.mobile_and_tablet(
+        rx.drawer.root(
+            rx.drawer.trigger(
+                rx.icon_button(
+                    rx.icon("menu", size=20),
+                    variant="soft",
+                    color_scheme="gray",
+                    size="2",
+                    radius="large",
+                    aria_label="Abrir menú",
+                ),
+            ),
+            rx.drawer.overlay(z_index="40"),
+            rx.drawer.portal(
+                rx.drawer.content(
+                    rx.box(
+                        rx.drawer.close(
+                            rx.icon_button(
+                                rx.icon("x", size=18),
+                                variant="ghost",
+                                color_scheme="gray",
+                                aria_label="Cerrar menú",
+                            ),
+                            position="absolute",
+                            top="1.3em",
+                            right="1em",
+                            z_index="1",
+                        ),
+                        contenido_navegacion(),
+                        position="relative",
+                        width="100%",
+                        height="100%",
+                        padding="1.2em",
+                        overflow_y="auto",
+                    ),
+                    width="min(300px, 85vw)",
+                    height="100%",
+                    top="0",
+                    left="0",
+                    background="white",
+                    z_index="50",
+                ),
+            ),
+            direction="left",
+        ),
     )
