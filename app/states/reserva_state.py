@@ -1,4 +1,5 @@
 import reflex as rx
+from app.config.precios import euros
 from pydantic import BaseModel
 from typing import Optional, List, Union
 
@@ -91,7 +92,7 @@ class ReservaState(rx.State):
                     estado=r.estado or "pendiente",
                     estado_bit=r.estado_bit,
                     correo_usuario=r.usuario.email if (r.usuario and r.id_usuario != 0) else "Visitante",
-                    detalle_menu=f"Menú #{r.id_menu}",
+                    detalle_menu=f"{r.menu.tipo.capitalize()} {r.menu.fecha:%d/%m}" if r.menu else f"Menú #{r.id_menu}",
                     # 🛠️ Extrae SOLO los platos guardados específicamente en esa reserva
                     platos_lista=[p.nombre for p in r.platos] if r.platos else ["Sin platos asociados"]
                 )
@@ -129,6 +130,6 @@ class ReservaState(rx.State):
             return rx.window_alert(str(e))
 
         app_state.agregar_notificacion(
-            f"Reserva #{id_reserva} CANCELADA. Reembolsado al monedero: {devuelto:.2f} €."
+            f"Reserva #{id_reserva} CANCELADA. Reembolsado al monedero: {euros(devuelto)}."
         )
         return ReservaState.load_reservas

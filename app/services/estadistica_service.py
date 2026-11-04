@@ -1,3 +1,5 @@
+from decimal import Decimal
+from app.config.precios import euros
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func
@@ -26,7 +28,7 @@ class EstadisticaService:
             {
                 "rol": str(row.rol).replace("_", " ").capitalize(),
                 "total_pagado": float(row.total_pagado),
-                "total_pagado_str": f"{float(row.total_pagado):.2f} €",
+                "total_pagado_str": euros(Decimal(row.total_pagado or 0)),
                 "cantidad_pagos": int(row.cantidad_pagos)
             }
             for row in resultados
@@ -70,7 +72,7 @@ class EstadisticaService:
                     "fecha": str(row.fecha),
                     "total_reservas": int(row.total_reservas or 0),
                     "ingresos": float(row.ingresos or 0.0),
-                    "ingresos_str": f"{float(row.ingresos or 0.0):.2f} €",
+                    "ingresos_str": euros(Decimal(row.ingresos or 0)),
                 }
                 for row in resultados
             ]

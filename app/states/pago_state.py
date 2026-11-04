@@ -52,6 +52,14 @@ class PagoState(rx.State):
     monto_recarga: str = "10"
     metodo_recarga: str = "tarjeta"
 
+    @rx.var
+    def saldo_actual_str(self) -> str:
+        return euros(Decimal(str(self.saldo_actual)))
+
+    @rx.var
+    def kpi_ingresos_str(self) -> str:
+        return euros(Decimal(str(self.kpi_ingresos)))
+
     # ====================================================
     # SETTERS
     # ====================================================
@@ -113,7 +121,7 @@ class PagoState(rx.State):
                     id_usuario=p.id_usuario or 0,
                     id_reserva=p.id_reserva,
                     monto=float(p.monto or 0.0),
-                    monto_str=f"{float(p.monto or 0.0):.2f} €",
+                    monto_str=euros(Decimal(p.monto or 0)),
                     metodo=(p.metodo or "tarjeta").lower(),
                     fecha_pago=p.fecha_pago.strftime("%Y-%m-%d %H:%M") if hasattr(p.fecha_pago, "strftime") else str(p.fecha_pago),
                     estado=(p.estado or "completado").lower(),

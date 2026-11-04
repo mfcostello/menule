@@ -11,9 +11,9 @@ def form_field(
     icon: str = "",
 ) -> rx.Component:
     return rx.vstack(
-        rx.text(label, weight="medium", size="2", color="#374151"),
+        rx.text(label, weight="medium", size="2", color="var(--gray-11)"),
         rx.input(
-            rx.input.slot(rx.icon(icon, size=16, color="#9CA3AF")) if icon else None,
+            rx.input.slot(rx.icon(icon, size=16, color="var(--gray-10)")) if icon else None,
             placeholder=placeholder,
             value=value,
             on_change=on_change,
@@ -40,7 +40,7 @@ def registro_page() -> rx.Component:
                         alt="Logo MenULE",
                     ),
                     rx.vstack(
-                        rx.heading("Crear una cuenta", size="6", weight="bold", color="#111827"),
+                        rx.heading("Crear una cuenta", size="6", weight="bold", color="var(--gray-12)"),
                         rx.text("Únete a la plataforma de comedor MenULE", color="gray", size="2"),
                         spacing="0",
                         align="start",
@@ -54,14 +54,14 @@ def registro_page() -> rx.Component:
 
                 rx.grid(
                     rx.vstack(
-                        rx.text("Información Personal", weight="bold", size="3", color="#4B5563"),
+                        rx.text("Información Personal", weight="bold", size="3", color="var(--gray-11)"),
                         
                         form_field("Nombre", "Tu nombre", RegisterState.nombre, RegisterState.set_nombre, icon="user"),
                         form_field("Apellido", "Tu apellido", RegisterState.apellido, RegisterState.set_apellido, icon="user-check"),
                         form_field("DNI / NIE", "12345678Z", RegisterState.dni, RegisterState.set_dni, icon="id-card"),
                         
                         rx.vstack(
-                            rx.text("Tipo de usuario", weight="medium", size="2", color="#374151"),
+                            rx.text("Tipo de usuario", weight="medium", size="2", color="var(--gray-11)"),
                             rx.select(
                                 ["estudiante", "profesor", "personal_comedor"],
                                 value=RegisterState.tipo,
@@ -102,7 +102,7 @@ def registro_page() -> rx.Component:
                     ),
 
                     rx.vstack(
-                        rx.text("Contacto y Seguridad", weight="bold", size="3", color="#4B5563"),
+                        rx.text("Contacto y Seguridad", weight="bold", size="3", color="var(--gray-11)"),
                         
                         rx.vstack(
                             form_field(
@@ -115,7 +115,7 @@ def registro_page() -> rx.Component:
                             rx.text(
                                 RegisterState.email_help_text,
                                 size="1",
-                                color="#6B7280",
+                                color="var(--gray-11)",
                             ),
                             spacing="1",
                             width="100%",
@@ -194,10 +194,10 @@ def registro_page() -> rx.Component:
             padding="2.5em",
             border_radius="24px",
             box_shadow="0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)",
-            background="#FFFFFF",
+            background="var(--color-panel-solid)",
         ),
         width="100%",
         min_height="100vh",
-        background="#F8FAFC",
+        background="var(--gray-2)",
         padding_y="2em",
     )

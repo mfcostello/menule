@@ -28,7 +28,7 @@ def modal_detalle_pedido() -> rx.Component:
                         rx.foreach(
                             PedidoState.pedido_seleccionado.platos_lista,
                             lambda plato: rx.hstack(
-                                rx.icon("chef-hat", size=18, color="#7C3AED"),
+                                rx.icon("chef-hat", size=18, color="var(--violet-10)"),
                                 rx.text(plato, size="2", weight="medium"),
                                 spacing="2",
                                 align="center",
@@ -37,7 +37,7 @@ def modal_detalle_pedido() -> rx.Component:
                         spacing="2",
                         width="100%",
                         padding="0.5em",
-                        background="#F9FAFB",
+                        background="var(--gray-2)",
                         border_radius="10px",
                     ),
                     spacing="3",
@@ -93,7 +93,7 @@ def pedidos_page() -> rx.Component:
         rx.vstack(
             # ENCABEZADO
             rx.vstack(
-                rx.heading("Procesar Pedidos y Comandas", size="8"),
+                rx.heading("Procesar Pedidos y Comandas", size=rx.breakpoints(initial="6", sm="8")),
                 rx.text(
                     "Control en tiempo real de entregas de comida y pase de comedor.",
                     color="gray",
@@ -105,10 +105,10 @@ def pedidos_page() -> rx.Component:
 
             # METRICAS RÁPIDAS
             rx.grid(
-                tarjeta_metrica("Total Reservas", PedidoState.total_hoy, "receipt", "#F3E8FF", "#7C3AED"),
-                tarjeta_metrica("Pendientes de Entrega", PedidoState.pendientes_hoy, "clock", "#FEF3C7", "#D97706"),
-                tarjeta_metrica("Entregados / Recogidos", PedidoState.recogidos_hoy, "circle-check", "#D1FAE5", "#059669"),
-                columns="3",
+                tarjeta_metrica("Total Reservas", PedidoState.total_hoy, "receipt", "var(--violet-3)", "var(--violet-10)"),
+                tarjeta_metrica("Pendientes de Entrega", PedidoState.pendientes_hoy, "clock", "var(--amber-3)", "var(--amber-11)"),
+                tarjeta_metrica("Entregados / Recogidos", PedidoState.recogidos_hoy, "circle-check", "var(--green-3)", "var(--green-11)"),
+                columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                 spacing="4",
                 width="100%",
             ),
@@ -119,9 +119,11 @@ def pedidos_page() -> rx.Component:
                     rx.hstack(
                         rx.input(
                             placeholder="Buscar por correo o ID...",
+                    min_width="180px",
+                    flex="1",
                             value=PedidoState.search_text,
                             on_change=PedidoState.set_search_text,
-                            width="280px",
+                            width="100%", max_width="280px",
                         ),
                         rx.select.root(
                             rx.select.trigger(placeholder="Filtrar estado..."),
@@ -152,6 +154,7 @@ def pedidos_page() -> rx.Component:
                         width="100%",
                         align="center",
                         spacing="3",
+                        flex_wrap="wrap",
                     ),
 
                     rx.table.root(

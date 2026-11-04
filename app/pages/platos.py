@@ -108,7 +108,7 @@ def modal_plato() -> rx.Component:
                                 LISTA_ALERGENOS,
                                 alergeno_checkbox_item,
                             ),
-                            columns="2",
+                            columns=rx.breakpoints(initial="1", sm="2"),
                             spacing="3",
                             width="100%",
                         ),
@@ -198,7 +198,7 @@ def platos_page() -> rx.Component:
         rx.vstack(
             # Cabecera
             rx.vstack(
-                rx.heading("Gestión de Platos", size="8"),
+                rx.heading("Gestión de Platos", size=rx.breakpoints(initial="6", sm="8")),
                 rx.text(
                     "Catálogo general de platos y control de alérgenos para comedores.",
                     color="gray",
@@ -213,9 +213,11 @@ def platos_page() -> rx.Component:
                 rx.hstack(
                     rx.input(
                         placeholder="Buscar plato o alérgeno...",
+                    min_width="180px",
+                    flex="1",
                         value=PlatoState.search_text,
                         on_change=PlatoState.set_search_text,
-                        width="340px",
+                        width="100%", max_width="340px",
                         radius="large",
                         size="3",
                     ),
@@ -238,6 +240,7 @@ def platos_page() -> rx.Component:
                     ),
                     width="100%",
                     align="center",
+                    flex_wrap="wrap",
                 ),
                 width="100%",
                 padding="1.25em",

@@ -317,7 +317,7 @@ def comedor_menus_view() -> rx.Component:
     """Vista Operativa para Personal de Comedor."""
     return rx.vstack(
         rx.vstack(
-            rx.heading("Panel de Personal de Comedor", size="8"),
+            rx.heading("Panel de Personal de Comedor", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Gestión operativa diaria: edición de menú, control de alérgenos y seguimiento de comandas.",
                 color="gray",
@@ -331,7 +331,7 @@ def comedor_menus_view() -> rx.Component:
         rx.grid(
             rx.card(
                 rx.hstack(
-                    rx.icon("utensils-crossed", size=32, color="#7C3AED"),
+                    rx.icon("utensils-crossed", size=32, color="var(--violet-10)"),
                     rx.vstack(
                         rx.text("Publicar / Editar Menú", weight="bold"),
                         rx.text("Configurar menú del día y alérgenos", size="1", color="gray"),
@@ -345,7 +345,7 @@ def comedor_menus_view() -> rx.Component:
             ),
             rx.card(
                 rx.hstack(
-                    rx.icon("chef-hat", size=32, color="#2563EB"),
+                    rx.icon("chef-hat", size=32, color="var(--blue-10)"),
                     rx.vstack(
                         rx.text("Procesar Pedidos", weight="bold"),
                         rx.hstack(
@@ -364,7 +364,7 @@ def comedor_menus_view() -> rx.Component:
             ),
             rx.card(
                 rx.hstack(
-                    rx.icon("boxes", size=32, color="#059669"),
+                    rx.icon("boxes", size=32, color="var(--green-11)"),
                     rx.vstack(
                         rx.text("Consultar Stock", weight="bold"),
                         rx.text("Inventario de ingredientes y cocina", size="1", color="gray"),
@@ -376,7 +376,7 @@ def comedor_menus_view() -> rx.Component:
                 cursor="pointer",
                 padding="1.2em",
             ),
-            columns="3",
+            columns=rx.breakpoints(initial="1", sm="2", lg="3"),
             spacing="4",
             width="100%",
         ),
@@ -389,9 +389,11 @@ def comedor_menus_view() -> rx.Component:
                     rx.spacer(),
                     rx.input(
                         placeholder="Buscar por fecha...",
+                    min_width="180px",
+                    flex="1",
                         value=MenuState.search_text,
                         on_change=MenuState.set_search_text,
-                        width="240px",
+                        width="100%", max_width="240px",
                     ),
                     rx.button(
                         rx.icon("search", size=16),
@@ -402,6 +404,7 @@ def comedor_menus_view() -> rx.Component:
                     ),
                     width="100%",
                     align="center",
+                    flex_wrap="wrap",
                 ),
                 rx.table.root(
                     rx.table.header(
@@ -471,7 +474,7 @@ def admin_menus_view() -> rx.Component:
     """Vista de Administración Global de Menús (Admin)."""
     return rx.vstack(
         rx.vstack(
-            rx.heading("Gestión General de Menús (Admin)", size="8"),
+            rx.heading("Gestión General de Menús (Admin)", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Administración completa de la oferta gastronómica y borrado de registros.",
                 color="gray",
@@ -485,9 +488,11 @@ def admin_menus_view() -> rx.Component:
             rx.hstack(
                 rx.input(
                     placeholder="Buscar menú...",
+                    min_width="180px",
+                    flex="1",
                     value=MenuState.search_text,
                     on_change=MenuState.set_search_text,
-                    width="340px",
+                    width="100%", max_width="340px",
                     radius="large",
                     size="3",
                 ),
@@ -510,6 +515,7 @@ def admin_menus_view() -> rx.Component:
                 ),
                 width="100%",
                 align="center",
+                flex_wrap="wrap",
             ),
             width="100%",
             padding="1.25em",
@@ -615,10 +621,10 @@ def option_card(plato: PlatoSimpleSchema, selected_var: rx.Var, set_func, es_vis
     return rx.card(
         rx.hstack(
             rx.vstack(
-                rx.text(plato.nombre, weight="bold", size="3", color="#111827"),
+                rx.text(plato.nombre, weight="bold", size="3", color="var(--gray-12)"),
                 rx.hstack(
-                    rx.icon("info", size=14, color="#6B7280"),
-                    rx.text(f"Alérgenos: {plato.alergenos}", size="1", color="#6B7280"),
+                    rx.icon("info", size=14, color="var(--gray-11)"),
+                    rx.text(f"Alérgenos: {plato.alergenos}", size="1", color="var(--gray-11)"),
                     spacing="1",
                     align="center",
                 ),
@@ -630,8 +636,8 @@ def option_card(plato: PlatoSimpleSchema, selected_var: rx.Var, set_func, es_vis
                 ~es_visitante,
                 rx.cond(
                     is_selected,
-                    rx.icon("circle-check", color="#7C3AED", size=24),
-                    rx.icon("circle", color="#D1D5DB", size=24),
+                    rx.icon("circle-check", color="var(--violet-10)", size=24),
+                    rx.icon("circle", color="var(--gray-7)", size=24),
                 ),
                 rx.badge("Oferta del día", color_scheme="purple", variant="soft", radius="full")
             ),
@@ -644,8 +650,8 @@ def option_card(plato: PlatoSimpleSchema, selected_var: rx.Var, set_func, es_vis
         cursor=rx.cond(~es_visitante, "pointer", "default"),
         style={
             "borderRadius": "14px",
-            "border": rx.cond(is_selected & ~es_visitante, "2px solid #7C3AED", "1px solid #EEF2F7"),
-            "backgroundColor": rx.cond(is_selected & ~es_visitante, "#F3E8FF", "#FFFFFF"),
+            "border": rx.cond(is_selected & ~es_visitante, "2px solid var(--violet-10)", "1px solid var(--gray-4)"),
+            "backgroundColor": rx.cond(is_selected & ~es_visitante, "var(--violet-3)", "var(--color-panel-solid)"),
             "transition": "all 0.15s ease-in-out",
         },
     )
@@ -656,12 +662,12 @@ def section_platos(title: str, icon: str, lista_platos: rx.Var, selected_var: rx
     return rx.vstack(
         rx.hstack(
             rx.center(
-                rx.icon(icon, size=20, color="#7C3AED"),
-                background="#F3E8FF",
+                rx.icon(icon, size=20, color="var(--violet-10)"),
+                background="var(--violet-3)",
                 border_radius="10px",
                 padding="6px",
             ),
-            rx.heading(title, size="4", weight="bold", color="#111827"),
+            rx.heading(title, size="4", weight="bold", color="var(--gray-12)"),
             spacing="2",
             align="center",
         ),
@@ -707,7 +713,7 @@ def user_menu_view() -> rx.Component:
                         rx.cond(es_visitante, "Oferta Gastronómica de Hoy", "Elige tu Menú de Hoy"),
                         size="6",
                         weight="bold",
-                        color="#111827"
+                        color="var(--gray-12)"
                     ),
                     rx.text(
                         rx.cond(
@@ -715,7 +721,7 @@ def user_menu_view() -> rx.Component:
                             "Consulta los platos y alérgenos disponibles en el Comedor Universitario.",
                             "Selecciona tus platos preferidos y confirma tu reserva instantánea descontando de tu saldo TUI."
                         ),
-                        color="#4B5563",
+                        color="var(--gray-11)",
                         size="3"
                     ),
                     spacing="2",
@@ -726,8 +732,8 @@ def user_menu_view() -> rx.Component:
                 rx.cond(
                     ~es_visitante,
                     rx.vstack(
-                        rx.text("Tu Saldo TUI", size="1", color="#6B7280", weight="medium"),
-                        rx.heading(AppState.user_saldo_str, size="5", color="#7C3AED", weight="bold"),
+                        rx.text("Tu Saldo TUI", size="1", color="var(--gray-11)", weight="medium"),
+                        rx.heading(AppState.user_saldo_str, size="5", color="var(--violet-10)", weight="bold"),
                         align_items="end",
                         spacing="0",
                     ),
@@ -739,8 +745,8 @@ def user_menu_view() -> rx.Component:
             padding="1.8em",
             style={
                 "borderRadius": "22px",
-                "background": "linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%)",
-                "border": "1px solid #E5E7EB",
+                "background": "linear-gradient(135deg, var(--color-panel-solid) 0%, var(--gray-2) 100%)",
+                "border": "1px solid var(--gray-5)",
             },
         ),
 
@@ -752,7 +758,7 @@ def user_menu_view() -> rx.Component:
                     section_platos("Primer Plato", "soup", MenuState.platos_primeros, MenuState.plato_1_sel, MenuState.set_plato_1_sel, es_visitante),
                     section_platos("Segundo Plato", "utensils", MenuState.platos_segundos, MenuState.plato_2_sel, MenuState.set_plato_2_sel, es_visitante),
                     section_platos("Postre", "apple", MenuState.platos_postres, MenuState.postre_sel, MenuState.set_postre_sel, es_visitante),
-                    columns="3",
+                    columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                     spacing="4",
                     width="100%",
                 ),
@@ -791,15 +797,15 @@ def user_menu_view() -> rx.Component:
             ),
             rx.card(
                 rx.vstack(
-                    rx.icon("utensils-crossed", size=48, color="#9CA3AF"),
-                    rx.heading("No hay menú publicado para hoy", size="4", color="#374151"),
-                    rx.text("El equipo de cocina aún no ha habilitado la oferta gastronómica del día.", color="#6B7280", size="2"),
+                    rx.icon("utensils-crossed", size=48, color="var(--gray-10)"),
+                    rx.heading("No hay menú publicado para hoy", size="4", color="var(--gray-11)"),
+                    rx.text("El equipo de cocina aún no ha habilitado la oferta gastronómica del día.", color="var(--gray-11)", size="2"),
                     align="center",
                     spacing="2",
                     padding="3em",
                 ),
                 width="100%",
-                style={"borderRadius": "20px", "border": "1px dashed #D1D5DB"},
+                style={"borderRadius": "20px", "border": "1px dashed var(--gray-7)"},
             ),
         ),
         spacing="5",

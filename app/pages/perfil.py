@@ -148,7 +148,7 @@ def perfil_page() -> rx.Component:
             
             # Header de la sección (Centrado)
             rx.vstack(
-                rx.heading("Mi Perfil", size="8"),
+                rx.heading("Mi Perfil", size=rx.breakpoints(initial="6", sm="8")),
                 rx.text("Gestiona tus datos personales y ajustes de seguridad de tu cuenta.", color="gray", align="center"),
                 align_items="center",
                 spacing="1",

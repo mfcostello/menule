@@ -9,7 +9,7 @@ def admin_reservas_view() -> rx.Component:
     """Vista de Administración Global de Reservas (Admin / Personal de Comedor)."""
     return rx.vstack(
         rx.vstack(
-            rx.heading("Gestión Global de Reservas", size="8"),
+            rx.heading("Gestión Global de Reservas", size=rx.breakpoints(initial="6", sm="8")),
             rx.text("Supervisión y control de todas las reservas realizadas en el comedor.", color="gray"),
             align_items="start",
             spacing="1",
@@ -21,9 +21,11 @@ def admin_reservas_view() -> rx.Component:
             rx.hstack(
                 rx.input(
                     placeholder="Buscar por ID de reserva o usuario...",
+                    min_width="180px",
+                    flex="1",
                     value=ReservaState.search_text,
                     on_change=ReservaState.set_search_text,
-                    width="360px",
+                    width="100%", max_width="360px",
                     radius="large",
                     size="3",
                 ),
@@ -38,6 +40,7 @@ def admin_reservas_view() -> rx.Component:
                 rx.spacer(),
                 width="100%",
                 align="center",
+                flex_wrap="wrap",
             ),
             width="100%",
             padding="1.25em",
@@ -137,7 +140,7 @@ def admin_reservas_view() -> rx.Component:
                                 rx.foreach(
                                     ReservaState.reserva_seleccionada.platos_lista,
                                     lambda plato: rx.hstack(
-                                        rx.icon("chef-hat", size=18, color="#7C3AED"),
+                                        rx.icon("chef-hat", size=18, color="var(--violet-10)"),
                                         rx.text(plato, size="3", weight="medium"),
                                         align="center",
                                         spacing="2",
@@ -146,7 +149,7 @@ def admin_reservas_view() -> rx.Component:
                                 spacing="2",
                                 align_items="start",
                             ),
-                            background="#F9FAFB",
+                            background="var(--gray-2)",
                             padding="1em",
                             border_radius="12px",
                             width="100%",
@@ -180,10 +183,10 @@ def user_reservas_view() -> rx.Component:
             rx.hstack(
                 rx.vstack(
                     rx.badge("Mis Tickets", color_scheme="purple", variant="surface", radius="full"),
-                    rx.heading("Historial de Reservas", size="6", weight="bold", color="#111827"),
+                    rx.heading("Historial de Reservas", size="6", weight="bold", color="var(--gray-12)"),
                     rx.text(
                         "Consulta el estado de tus menús reservados y presenta tus códigos QR.",
-                        color="#4B5563",
+                        color="var(--gray-11)",
                         size="3",
                     ),
                     spacing="2",
@@ -197,8 +200,8 @@ def user_reservas_view() -> rx.Component:
             padding="1.8em",
             style={
                 "borderRadius": "22px",
-                "background": "linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%)",
-                "border": "1px solid #E5E7EB",
+                "background": "linear-gradient(135deg, var(--color-panel-solid) 0%, var(--gray-2) 100%)",
+                "border": "1px solid var(--gray-5)",
             },
         ),
 
@@ -234,11 +237,11 @@ def user_reservas_view() -> rx.Component:
 
                             # PLATOS ELEGIDOS POR EL USUARIO
                             rx.vstack(
-                                rx.text("Mis Platos Pedidos:", weight="bold", size="2", color="#7C3AED"),
+                                rx.text("Mis Platos Pedidos:", weight="bold", size="2", color="var(--violet-10)"),
                                 rx.foreach(
                                     res.platos_lista,
                                     lambda plato: rx.hstack(
-                                        rx.icon("utensils", size=14, color="#7C3AED"),
+                                        rx.icon("utensils", size=14, color="var(--violet-10)"),
                                         rx.text(plato, size="2", weight="medium"),
                                         align="center",
                                         spacing="2",
@@ -247,7 +250,7 @@ def user_reservas_view() -> rx.Component:
                                 align_items="start",
                                 spacing="1",
                                 width="100%",
-                                background="#F9FAFB",
+                                background="var(--gray-2)",
                                 padding="0.8em",
                                 border_radius="10px",
                             ),
@@ -257,7 +260,7 @@ def user_reservas_view() -> rx.Component:
                                 rx.image(
                                     src=f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TICKET_{res.id_reserva}",
                                     alt="Código QR de Validación",
-                                    width="130px",
+                                    width="100%", max_width="130px",
                                     height="130px",
                                 ),
                                 width="100%",
@@ -283,21 +286,21 @@ def user_reservas_view() -> rx.Component:
                         style={"borderRadius": "16px"},
                     ),
                 ),
-                columns="3",
+                columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                 spacing="4",
                 width="100%",
             ),
             rx.card(
                 rx.vstack(
-                    rx.icon("ticket", size=48, color="#9CA3AF"),
-                    rx.heading("No tienes reservas activas", size="4", color="#374151"),
-                    rx.text("Haz tu reserva desde la sección 'Menú del Día'.", color="#6B7280", size="2"),
+                    rx.icon("ticket", size=48, color="var(--gray-10)"),
+                    rx.heading("No tienes reservas activas", size="4", color="var(--gray-11)"),
+                    rx.text("Haz tu reserva desde la sección 'Menú del Día'.", color="var(--gray-11)", size="2"),
                     align="center",
                     spacing="2",
                     padding="3em",
                 ),
                 width="100%",
-                style={"borderRadius": "20px", "border": "1px dashed #D1D5DB"},
+                style={"borderRadius": "20px", "border": "1px dashed var(--gray-7)"},
             ),
         ),
 

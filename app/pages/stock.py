@@ -1,6 +1,7 @@
 import reflex as rx
 
 from app.components.layout import layout
+from app.states.menu_state import MenuState
 from app.states.stock_state import IngredienteSchema, StockState
 
 
@@ -61,92 +62,60 @@ def fila_ingrediente(ing: IngredienteSchema) -> rx.Component:
     )
 
 
+def _columna_platos(titulo: str, platos) -> rx.Component:
+    return rx.vstack(
+        rx.text(titulo, weight="bold", size="2", color="var(--violet-10)"),
+        rx.foreach(
+            platos,
+            lambda p: rx.badge("• " + p.nombre, variant="soft", color_scheme="gray"),
+        ),
+        align_items="start",
+        spacing="1",
+    )
+
+
 def desglose_menu_hoy() -> rx.Component:
-    """Muestra el menú activo de hoy y los requerimientos calculados para 150 aforos basados en tu catálogo."""
+    """Menú real del turno actual (el mismo que ven los comensales) y reservas del día."""
     return rx.card(
-        rx.vstack(
-            rx.hstack(
-                rx.icon("utensils-crossed", size=22, color="#7C3AED"),
-                rx.heading("Menú Activo de Hoy (Almuerzo - 150 Reservas máx.)", size="4"),
-                rx.spacer(),
-                rx.badge("Servicio Confirmado", color_scheme="green", radius="full"),
-                width="100%",
-                align="center",
-            ),
-            rx.text(
-                "Platos seleccionados para el servicio de hoy y estimación de materia prima necesaria:",
-                size="2",
-                color="gray",
-            ),
-            rx.grid(
-                rx.vstack(
-                    rx.text("🥣 Primeros Platos", weight="bold", size="2", color="#7C3AED"),
-                    rx.badge("• Crema de Verduras", variant="soft", color_scheme="gray"),
-                    rx.badge("• Macarrones Bolonesa", variant="soft", color_scheme="gray"),
-                    rx.badge("• Frango à brás", variant="soft", color_scheme="gray"),
-                    align_items="start",
-                    spacing="1",
+        rx.cond(
+            MenuState.has_menu_hoy,
+            rx.vstack(
+                rx.hstack(
+                    rx.icon("utensils-crossed", size=22, color="var(--violet-10)"),
+                    rx.heading("Menú activo: " + MenuState.tipo_menu_hoy, size="4"),
+                    rx.spacer(),
+                    rx.badge(
+                        "Pendientes hoy: " + MenuState.total_reservas_hoy.to_string(),
+                        color_scheme="green",
+                        radius="full",
+                    ),
+                    width="100%",
+                    align="center",
+                    flex_wrap="wrap",
                 ),
-                rx.vstack(
-                    rx.text("🥩 Segundos Platos", weight="bold", size="2", color="#7C3AED"),
-                    rx.badge("• Hamburguesa Completa", variant="soft", color_scheme="gray"),
-                    rx.badge("• Estofado de Ternera", variant="soft", color_scheme="gray"),
-                    rx.badge("• Lomo Adobado", variant="soft", color_scheme="gray"),
-                    align_items="start",
-                    spacing="1",
+                rx.text("Platos del servicio actual:", size="2", color="gray"),
+                rx.grid(
+                    _columna_platos("🥣 Primeros", MenuState.platos_primeros),
+                    _columna_platos("🥩 Segundos", MenuState.platos_segundos),
+                    _columna_platos("🍰 Postres", MenuState.platos_postres),
+                    columns=rx.breakpoints(initial="1", sm="2", lg="3"),
+                    spacing="4",
+                    width="100%",
+                    padding_y="0.5em",
                 ),
-                rx.vstack(
-                    rx.text("🍰 Postres", weight="bold", size="2", color="#7C3AED"),
-                    rx.badge("• Yogur Natural", variant="soft", color_scheme="gray"),
-                    rx.badge("• Tarta de Queso", variant="soft", color_scheme="gray"),
-                    rx.badge("• Helado de Vainilla", variant="soft", color_scheme="gray"),
-                    align_items="start",
-                    spacing="1",
-                ),
-                columns="3",
-                spacing="4",
-                width="100%",
-                padding_y="0.5em",
-            ),
-            rx.divider(margin_y="2"),
-            rx.text("📦 Materia Prima Sugerida para el Servicio Activo (150 Pax):", weight="bold", size="2"),
-            rx.grid(
-                rx.box(
-                    rx.text("Verduras Variadas (Crema)", size="1", color="gray"),
-                    rx.text("25 Kg requeridos", size="2", weight="bold", color="#059669"),
-                    padding="0.6em", background="#F0FDF4", border_radius="10px", border="1px solid #BBF7D0"
-                ),
-                rx.box(
-                    rx.text("Carne Picada / Ternera (Bolonesa/Hamburguesa)", size="1", color="gray"),
-                    rx.text("35 Kg requeridos", size="2", weight="bold", color="#059669"),
-                    padding="0.6em", background="#F0FDF4", border_radius="10px", border="1px solid #BBF7D0"
-                ),
-                rx.box(
-                    rx.text("Pollo Deshilachado / Frango & Huevos", size="1", color="gray"),
-                    rx.text("20 Kg + 150 Ud. Huevos", size="2", weight="bold", color="#059669"),
-                    padding="0.6em", background="#F0FDF4", border_radius="10px", border="1px solid #BBF7D0"
-                ),
-                rx.box(
-                    rx.text("Lomo Adobado de Cerdo", size="1", color="gray"),
-                    rx.text("18 Kg requeridos", size="2", weight="bold", color="#059669"),
-                    padding="0.6em", background="#F0FDF4", border_radius="10px", border="1px solid #BBF7D0"
-                ),
-                rx.box(
-                    rx.text("Queso Cremoso (Tarta)", size="1", color="gray"),
-                    rx.text("8 Kg requeridos", size="2", weight="bold", color="#059669"),
-                    padding="0.6em", background="#F0FDF4", border_radius="10px", border="1px solid #BBF7D0"
-                ),
-                columns="3",
                 spacing="3",
                 width="100%",
             ),
-            spacing="3",
-            width="100%",
+            rx.hstack(
+                rx.icon("calendar-x", size=22, color="gray"),
+                rx.text("No hay ningún menú disponible para hoy.", size="2", color="gray"),
+                align="center",
+            ),
         ),
         width="100%",
         padding="1.2em",
         border_radius="20px",
-        style={"background": "linear-gradient(135deg, #FFFFFF 0%, #FAF5FF 100%)"},
+        style={"background": "linear-gradient(135deg, var(--color-panel-solid) 0%, var(--violet-2) 100%)"},
     )
 
 
@@ -155,7 +124,7 @@ def stock_view() -> rx.Component:
     return rx.vstack(
         # Encabezado
         rx.vstack(
-            rx.heading("Gestión e Inventario de Stock", size="8"),
+            rx.heading("Gestión e Inventario de Stock", size=rx.breakpoints(initial="6", sm="8")),
             rx.text(
                 "Control de materia prima, previsión del servicio diario y reabastecimiento.",
                 color="gray",
@@ -171,15 +140,15 @@ def stock_view() -> rx.Component:
                 "Total Ingredientes",
                 StockState.total_ingredientes,
                 "package",
-                "#7C3AED",
+                "var(--violet-10)",
             ),
             metric_card(
                 "Ingredientes Críticos",
                 StockState.stock_critico_count,
                 "triangle-alert",
-                "#DC2626",
+                "var(--red-11)",
             ),
-            columns="2",
+            columns=rx.breakpoints(initial="1", sm="2"),
             spacing="4",
             width="100%",
         ),
@@ -193,9 +162,11 @@ def stock_view() -> rx.Component:
                 rx.hstack(
                     rx.input(
                         placeholder="Buscar ingrediente...",
+                    min_width="180px",
+                    flex="1",
                         value=StockState.search_text,
                         on_change=StockState.set_search_text,
-                        width="280px",
+                        width="100%", max_width="280px",
                     ),
                     rx.button(
                         rx.cond(
@@ -227,6 +198,7 @@ def stock_view() -> rx.Component:
                     ),
                     width="100%",
                     align="center",
+                    flex_wrap="wrap",
                 ),
 
                 # Tabla Principal
@@ -295,7 +267,7 @@ def stock_view() -> rx.Component:
             rx.dialog.content(
                 rx.vstack(
                     rx.hstack(
-                        rx.icon("package-plus", size=22, color="#7C3AED"),
+                        rx.icon("package-plus", size=22, color="var(--violet-10)"),
                         rx.dialog.title("Añadir Nuevo Ingrediente"),
                         align="center",
                         spacing="2",

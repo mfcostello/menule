@@ -11,10 +11,10 @@ def option_card_visitante(plato: PlatoSimpleSchema, selected_var: rx.Var, set_fu
     return rx.card(
         rx.hstack(
             rx.vstack(
-                rx.text(plato.nombre, weight="bold", size="3", color="#111827"),
+                rx.text(plato.nombre, weight="bold", size="3", color="var(--gray-12)"),
                 rx.hstack(
-                    rx.icon("info", size=14, color="#6B7280"),
-                    rx.text(f"Alérgenos: {plato.alergenos}", size="1", color="#6B7280"),
+                    rx.icon("info", size=14, color="var(--gray-11)"),
+                    rx.text(f"Alérgenos: {plato.alergenos}", size="1", color="var(--gray-11)"),
                     spacing="1",
                     align="center",
                 ),
@@ -24,8 +24,8 @@ def option_card_visitante(plato: PlatoSimpleSchema, selected_var: rx.Var, set_fu
             rx.spacer(),
             rx.cond(
                 is_selected,
-                rx.icon("circle-check", color="#7C3AED", size=24),
-                rx.icon("circle", color="#D1D5DB", size=24),
+                rx.icon("circle-check", color="var(--violet-10)", size=24),
+                rx.icon("circle", color="var(--gray-7)", size=24),
             ),
             align="center",
             width="100%",
@@ -36,8 +36,8 @@ def option_card_visitante(plato: PlatoSimpleSchema, selected_var: rx.Var, set_fu
         cursor="pointer",
         style={
             "borderRadius": "14px",
-            "border": rx.cond(is_selected, "2px solid #7C3AED", "1px solid #EEF2F7"),
-            "backgroundColor": rx.cond(is_selected, "#F3E8FF", "#FFFFFF"),
+            "border": rx.cond(is_selected, "2px solid var(--violet-10)", "1px solid var(--gray-4)"),
+            "backgroundColor": rx.cond(is_selected, "var(--violet-3)", "var(--color-panel-solid)"),
             "transition": "all 0.15s ease-in-out",
         },
     )
@@ -48,12 +48,12 @@ def section_platos_visitante(title: str, icon: str, lista_platos: rx.Var, select
     return rx.vstack(
         rx.hstack(
             rx.center(
-                rx.icon(icon, size=20, color="#7C3AED"),
-                background="#F3E8FF",
+                rx.icon(icon, size=20, color="var(--violet-10)"),
+                background="var(--violet-3)",
                 border_radius="10px",
                 padding="6px",
             ),
-            rx.heading(title, size="4", weight="bold", color="#111827"),
+            rx.heading(title, size="4", weight="bold", color="var(--gray-12)"),
             spacing="2",
             align="center",
         ),
@@ -145,8 +145,8 @@ def visitante_reserva_content() -> rx.Component:
                         rx.badge(PRECIO_VISITANTE_STR, color_scheme="green", variant="surface", radius="full"),
                         spacing="2",
                     ),
-                    rx.heading("Elige tu Menú de Hoy", size="6", weight="bold", color="#111827"),
-                    rx.text("Selecciona tus platos preferidos para el día de hoy. Tarifa general fija sin acreditación ULE.", color="#4B5563", size="3"),
+                    rx.heading("Elige tu Menú de Hoy", size="6", weight="bold", color="var(--gray-12)"),
+                    rx.text("Selecciona tus platos preferidos para el día de hoy. Tarifa general fija sin acreditación ULE.", color="var(--gray-11)", size="3"),
                     spacing="2",
                     align_items="start",
                 ),
@@ -157,8 +157,8 @@ def visitante_reserva_content() -> rx.Component:
             padding="1.8em",
             style={
                 "borderRadius": "22px",
-                "background": "linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%)",
-                "border": "1px solid #E5E7EB",
+                "background": "linear-gradient(135deg, var(--color-panel-solid) 0%, var(--gray-2) 100%)",
+                "border": "1px solid var(--gray-5)",
             },
         ),
         rx.cond(
@@ -186,7 +186,7 @@ def visitante_reserva_content() -> rx.Component:
                         VisitanteState.postre_sel, 
                         VisitanteState.set_postre_sel
                     ),
-                    columns="3",
+                    columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                     spacing="4",
                     width="100%",
                 ),
@@ -209,15 +209,15 @@ def visitante_reserva_content() -> rx.Component:
             ),
             rx.card(
                 rx.vstack(
-                    rx.icon("utensils-crossed", size=48, color="#9CA3AF"),
-                    rx.heading("No hay menú publicado para hoy", size="4", color="#374151"),
-                    rx.text("El equipo de cocina aún no ha habilitado la oferta gastronómica del día.", color="#6B7280", size="2"),
+                    rx.icon("utensils-crossed", size=48, color="var(--gray-10)"),
+                    rx.heading("No hay menú publicado para hoy", size="4", color="var(--gray-11)"),
+                    rx.text("El equipo de cocina aún no ha habilitado la oferta gastronómica del día.", color="var(--gray-11)", size="2"),
                     align="center",
                     spacing="2",
                     padding="3em",
                 ),
                 width="100%",
-                style={"borderRadius": "20px", "border": "1px dashed #D1D5DB"},
+                style={"borderRadius": "20px", "border": "1px dashed var(--gray-7)"},
             ),
         ),
         modal_pago_tarjeta(),

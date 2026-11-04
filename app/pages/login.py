@@ -112,7 +112,7 @@ def login_page() -> rx.Component:
                 rx.vstack(
                     rx.vstack(
                         rx.badge("Universidad de León", color_scheme="violet", radius="full", size="2"),
-                        rx.heading("Bienvenido", size="7", weight="bold", color="#111827"),
+                        rx.heading("Bienvenido", size="7", weight="bold", color="var(--gray-12)"),
                         rx.text("Accede con tu cuenta institucional", size="2", color="gray", text_align="center"),
                         spacing="2",
                         align="center",
@@ -121,9 +121,9 @@ def login_page() -> rx.Component:
                     rx.divider(),
                     
                     rx.vstack(
-                        rx.text("Correo electrónico", weight="medium", size="2", color="#374151", width="100%"),
+                        rx.text("Correo electrónico", weight="medium", size="2", color="var(--gray-11)", width="100%"),
                         rx.input(
-                            rx.input.slot(rx.icon("mail", size=18, color="#9CA3AF")),
+                            rx.input.slot(rx.icon("mail", size=18, color="var(--gray-10)")),
                             placeholder="nombre@unileon.es",
                             value=AppState.email,
                             on_change=AppState.set_email,
@@ -137,9 +137,9 @@ def login_page() -> rx.Component:
                     ),
 
                     rx.vstack(
-                        rx.text("Contraseña", weight="medium", size="2", color="#374151", width="100%"),
+                        rx.text("Contraseña", weight="medium", size="2", color="var(--gray-11)", width="100%"),
                         rx.input(
-                            rx.input.slot(rx.icon("lock", size=18, color="#9CA3AF")),
+                            rx.input.slot(rx.icon("lock", size=18, color="var(--gray-10)")),
                             placeholder="••••••••",
                             type="password",
                             value=AppState.password,
@@ -178,14 +178,14 @@ def login_page() -> rx.Component:
                         transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                         _hover={
                             "transform": "translateY(-2px)",
-                            "boxShadow": "0 8px 20px rgba(124, 58, 237, 0.35)",
+                            "boxShadow": "0 8px 20px var(--violet-a7)",
                         },
                         _active={"transform": "translateY(0)"},
                     ),
 
                     rx.hstack(
                         rx.divider(width="40%"),
-                        rx.text("o", color="#9CA3AF", size="2", weight="medium"),
+                        rx.text("o", color="var(--gray-10)", size="2", weight="medium"),
                         rx.divider(width="40%"),
                         align="center",
                         justify="between",
@@ -205,7 +205,7 @@ def login_page() -> rx.Component:
                         cursor="pointer",
                         on_click=AppState.login_visitante,
                         transition="all 0.2s ease",
-                        _hover={"background": "#E5E7EB"},
+                        _hover={"background": "var(--gray-5)"},
                     ),
 
                     rx.divider(),
@@ -232,7 +232,7 @@ def login_page() -> rx.Component:
                 max_width="450px",
                 padding=["1.5em", "2em", "3em"],
                 border_radius="28px",
-                background="rgba(255,255,255,0.85)",
+                background="color-mix(in srgb, var(--color-panel-solid) 85%, transparent)",
                 style={
                     "backdropFilter": "blur(24px)",
                     "WebkitBackdropFilter": "blur(24px)",
@@ -248,7 +248,7 @@ def login_page() -> rx.Component:
             width=["100%", "100%", "42%"],
             min_height="100vh",
             padding="1.5em",
-            background="#F8FAFC",
+            background="var(--gray-2)",
         ),
         flex_direction=["column", "column", "row"],  # 👈 CORREGIDO: flex_direction CSS nativo
         width="100vw",

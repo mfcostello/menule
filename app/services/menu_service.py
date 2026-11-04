@@ -1,8 +1,20 @@
-from datetime import date
+from datetime import date, datetime, time
 from typing import Optional
 from sqlalchemy import String, func
 from sqlalchemy.orm import Session, joinedload
 from app.models import Menu, Reserva
+
+# Turnos de comida en orden y hora a la que termina cada uno
+ORDEN_TURNOS = ["desayuno", "almuerzo", "cena"]
+FIN_TURNO = {"desayuno": time(11, 0), "almuerzo": time(16, 30)}
+
+
+def turno_para_hora(hora: time) -> str:
+    """'desayuno' hasta las 11:00, 'almuerzo' hasta las 16:30 y luego 'cena'."""
+    for turno in ("desayuno", "almuerzo"):
+        if hora < FIN_TURNO[turno]:
+            return turno
+    return "cena"
 
 
 class MenuService:
@@ -48,15 +60,34 @@ class MenuService:
         )
 
     @staticmethod
-    def get_menu_del_dia(db: Session, fecha_consulta: Optional[date] = None) -> Optional[Menu]:
-        """Obtiene el menú disponible para una fecha específica (por defecto la fecha actual)."""
+    def get_menu_del_dia(
+        db: Session,
+        fecha_consulta: Optional[date] = None,
+        hora: Optional[time] = None,
+    ) -> Optional[Menu]:
+        """Menú disponible de hoy que corresponde al momento del día.
+
+        Si hay varios menús ese día (desayuno, almuerzo, cena), se elige el del
+        turno actual; si no existe, el siguiente turno del día y, si ya han
+        pasado todos, el último.
+        """
         target_date = fecha_consulta or date.today()
-        return (
+        menus = (
             db.query(Menu)
             .options(joinedload(Menu.platos))
-            .filter(Menu.fecha == target_date, Menu.disponible == True)
-            .first()
+            .filter(Menu.fecha == target_date, Menu.disponible == True)  # noqa: E712
+            .all()
         )
+        if not menus:
+            return None
+
+        menus.sort(key=lambda m: ORDEN_TURNOS.index(m.tipo) if m.tipo in ORDEN_TURNOS else 99)
+        turno_actual = turno_para_hora(hora or datetime.now().time())
+        indice_actual = ORDEN_TURNOS.index(turno_actual)
+        for menu in menus:
+            if menu.tipo in ORDEN_TURNOS and ORDEN_TURNOS.index(menu.tipo) >= indice_actual:
+                return menu
+        return menus[-1]
 
     @staticmethod
     def count_reservas_dia(db: Session, target_date: Optional[date] = None) -> int:

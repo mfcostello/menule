@@ -25,7 +25,7 @@ def seccion_pagos() -> rx.Component:
                                 lambda item: rx.table.row(
                                     rx.table.cell(rx.badge(item["rol"], color_scheme="violet")),
                                     rx.table.cell(item["cantidad_pagos"]),
-                                    rx.table.cell(f"{item['total_pagado']:.2f} €", weight="bold"),
+                                    rx.table.cell(item['total_pagado_str'], weight="bold"),
                                 ),
                             )
                         ),
@@ -163,7 +163,7 @@ def estadisticas_page() -> rx.Component:
             # Cabecera
             rx.hstack(
                 rx.vstack(
-                    rx.heading("Panel de Estadísticas y Analítica", size="8"),
+                    rx.heading("Panel de Estadísticas y Analítica", size=rx.breakpoints(initial="6", sm="8")),
                     rx.text("Métricas agregadas del sistema por perfil de usuario y rendimiento diario.", color="gray"),
                     align_items="start",
                     spacing="1",
@@ -173,13 +173,16 @@ def estadisticas_page() -> rx.Component:
                 rx.segmented_control.root(
                     rx.segmented_control.item("Pagos", value="Pagos"),
                     rx.segmented_control.item("Incidencias", value="Incidencias"),
+                    size=rx.breakpoints(initial="1", sm="2"),
+                    max_width="100%",
+                    overflow_x="auto",
                     value=EstadisticaState.tipo_vista,
                     on_change=EstadisticaState.set_tipo_vista,
                     radius="large",
-                    size="2",
                 ),
                 width="100%",
                 align="center",
+                flex_wrap="wrap",
             ),
 
             # Vista condicional según el selector
