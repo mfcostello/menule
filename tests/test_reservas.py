@@ -138,3 +138,23 @@ def test_cancelar_visitante_marca_reembolsado_sin_monedero(datos):
     id_reserva = R.crear_reserva_visitante(datos, 1, PLATOS_OK, "v@v.es")
     assert R.cancelar_reserva(datos, id_reserva) == D("0")
     assert datos.query(Pago).filter_by(id_reserva=id_reserva).one().estado == "reembolsado"
+
+
+# ---------------------------------------------------------------- menú del día
+@pytest.mark.parametrize(
+    "hora, esperado",
+    [((9, 0), "almuerzo"), ((14, 0), "almuerzo"), ((20, 0), "cena")],
+)
+def test_menu_del_dia_segun_la_hora(datos, hora, esperado):
+    from datetime import date, time
+    from app.services.menu_service import MenuService
+    datos.add(Menu(id_menu=3, fecha=date.today(), tipo="cena", max_reservas=10, disponible=True))
+    datos.commit()
+    menu = MenuService.get_menu_del_dia(datos, hora=time(*hora))
+    assert menu.tipo == esperado  # a las 9:00 no hay desayuno -> el siguiente turno
+
+
+def test_menu_del_dia_tras_el_ultimo_turno(datos):
+    from datetime import time
+    from app.services.menu_service import MenuService
+    assert MenuService.get_menu_del_dia(datos, hora=time(22, 0)).tipo == "almuerzo"
