@@ -100,7 +100,7 @@ menule/
 │   └── app.py                  # Punto de entrada y enrutado de Reflex
 ├── assets/                     # Recursos estáticos e imágenes del proyecto
 ├── database/                   # Scripts de la base de datos MySQL
-│   └── menule_squema.sql       # Esquema completo de tablas, vistas e inserciones
+│   └── menule_schema.sql       # Esquema completo de tablas, vistas e inserciones
 ├── rxconfig.py                 # Archivo de configuración de Reflex
 ├── .env.example                # Plantilla de variables de entorno
 ├── requirements.txt            # Dependencias del proyecto
@@ -151,7 +151,7 @@ pip install -r requirements.txt
 Ejecuta el script SQL incluido en la carpeta `database/` para crear el esquema y las tablas en tu servidor MySQL local:
 
 ```bash
-mysql -u root -p < database/menule_squema.sql
+mysql -u root -p < database/menule_schema.sql
 ```
 
 ### Configurar variables de entorno
