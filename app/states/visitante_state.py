@@ -1,10 +1,14 @@
+import logging
 import reflex as rx
-from datetime import date, datetime
+from datetime import date
 from typing import List
 from app.database import SessionLocal
+from app.config.precios import PRECIO_MENU_VISITANTE
 from app.services.menu_service import MenuService
-from app.services.reserva_service import ReservaService
+from app.services.reserva_service import ReservaService, ReservaError
 from app.states.menu_state import PlatoSimpleSchema
+
+logger = logging.getLogger(__name__)
 
 
 class VisitanteState(rx.State):
@@ -24,7 +28,7 @@ class VisitanteState(rx.State):
     postre_sel: str = ""
 
     # Modales y formulario
-    precio_tarifa: float = 7.50
+    precio_tarifa: float = float(PRECIO_MENU_VISITANTE)
     show_modal_pago: bool = False
     show_modal_correo: bool = False
     email_visitante: str = ""
@@ -111,19 +115,22 @@ class VisitanteState(rx.State):
 
         self.error_correo = ""
 
-        with SessionLocal() as db:
-            # Buscar los IDs de los 3 platos seleccionados a través de la BD
-            from app.models import Plato
-            nombres_elegidos = [self.plato_1_sel, self.plato_2_sel, self.postre_sel]
-            platos_db = db.query(Plato).filter(Plato.nombre.in_(nombres_elegidos)).all()
-            platos_ids = [p.id_plato for p in platos_db]
-
-            self.reserva_exito_id = ReservaService.crear_reserva_visitante(
-                db=db,
-                id_menu=self.id_menu_hoy,
-                platos_ids=platos_ids,
-                email_visitante=correo
-            )
+        nombres_elegidos = [self.plato_1_sel, self.plato_2_sel, self.postre_sel]
+        try:
+            with SessionLocal() as db:
+                self.reserva_exito_id = ReservaService.crear_reserva_visitante(
+                    db=db,
+                    id_menu=self.id_menu_hoy,
+                    nombres_platos=nombres_elegidos,
+                    email_visitante=correo,
+                )
+        except ReservaError as e:
+            self.show_modal_correo = False
+            return rx.window_alert(str(e))
+        except Exception:
+            logger.exception("Error al procesar la reserva de visitante")
+            self.show_modal_correo = False
+            return rx.window_alert("Ha ocurrido un error al procesar la reserva. Inténtalo de nuevo.")
 
         self.show_modal_correo = False
         

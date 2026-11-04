@@ -1,7 +1,6 @@
 import reflex as rx
 from pydantic import BaseModel
 from typing import Optional
-from app.models import Usuario as UsuarioORM
 from app.database import SessionLocal
 from app.services.register_service import RegisterService
 from app.services.user_service import UserService
@@ -90,8 +89,7 @@ class UserState(rx.State):
             app_state.agregar_notificacion("Acceso denegado: Se requieren permisos de administrador.")
             return rx.redirect("/home")
 
-        db = SessionLocal()
-        try:
+        with SessionLocal() as db:
             query_results = UserService.get_all_users(db)
             self.users = [
                 UsuarioSchema(
@@ -105,8 +103,6 @@ class UserState(rx.State):
                 )
                 for u in query_results
             ]
-        finally:
-            db.close()
 
     @rx.event
     async def search_users(self):
@@ -115,9 +111,12 @@ class UserState(rx.State):
             self.users = []
             return
 
-        db = SessionLocal()
-        try:
-            results = UserService.search_users(db, self.search_text.strip()) if self.search_text.strip() else UserService.get_all_users(db)
+        with SessionLocal() as db:
+            if self.search_text.strip():
+                results = UserService.search_users(db, self.search_text.strip())
+            else:
+                results = UserService.get_all_users(db)
+
             self.users = [
                 UsuarioSchema(
                     id_usuario=u.id_usuario,
@@ -130,8 +129,6 @@ class UserState(rx.State):
                 )
                 for u in results
             ]
-        finally:
-            db.close()
 
     # --- CREAR USUARIO EN MYSQL (DESDE PANEL ADMIN) ---
     def abrir_modal_nuevo(self):
@@ -150,35 +147,36 @@ class UserState(rx.State):
         if not app_state.is_logged_in or not app_state.is_admin:
             return rx.window_alert("No tienes permisos para realizar esta acción.")
 
-        if not self.form_nombre or not self.form_email or not self.form_password:
+        if not self.form_nombre.strip() or not self.form_email.strip() or not self.form_password.strip():
             return rx.window_alert("Nombre, Email y Contraseña son obligatorios.")
 
-        db = SessionLocal()
-        try:
-            pwd_hashed = RegisterService.hash_password(self.form_password)
+        with SessionLocal() as db:
+            if UserService.email_exists(db, self.form_email):
+                return rx.window_alert("Ya existe un usuario con ese correo electrónico.")
 
-            nuevo = UsuarioORM(
-                dni=self.form_dni or None,
-                nombre=self.form_nombre,
-                apellido=self.form_apellido,
-                email=self.form_email,
-                contrasena_hash=pwd_hashed,
-                telefono=self.form_telefono or None,
-                tipo=self.form_tipo,
-                credencial_activa=True,
-            )
-            db.add(nuevo)
-            db.commit()
-            self.show_modal_nuevo = False
-            return [
-                UserState.load_users,
-                rx.window_alert("Usuario creado exitosamente.")
-            ]
-        except Exception as e:
-            db.rollback()
-            return rx.window_alert(f"Error al crear usuario: {str(e)}")
-        finally:
-            db.close()
+            if self.form_dni.strip() and UserService.dni_exists(db, self.form_dni):
+                return rx.window_alert("Ya existe un usuario con ese DNI.")
+
+            try:
+                pwd_hashed = RegisterService.hash_password(self.form_password)
+                UserService.create_user(
+                    db=db,
+                    nombre=self.form_nombre,
+                    apellido=self.form_apellido,
+                    email=self.form_email,
+                    contrasena_hash=pwd_hashed,
+                    tipo=self.form_tipo,
+                    dni=self.form_dni,
+                    telefono=self.form_telefono,
+                )
+                self.show_modal_nuevo = False
+                return [
+                    UserState.load_users,
+                    rx.window_alert("Usuario creado exitosamente."),
+                ]
+            except Exception as e:
+                db.rollback()
+                return rx.window_alert(f"Error al crear usuario: {str(e)}")
 
     # --- EDITAR USUARIO EN MYSQL ---
     def abrir_modal_editar(self, u: UsuarioSchema):
@@ -198,35 +196,28 @@ class UserState(rx.State):
         if not app_state.is_logged_in or not app_state.is_admin:
             return rx.window_alert("No tienes permisos para realizar esta acción.")
 
-        db = SessionLocal()
-        try:
-            u = (
-                db.query(UsuarioORM)
-                .filter(UsuarioORM.id_usuario == self.current_id)
-                .first()
-            )
-            if u:
-                u.dni = self.form_dni
-                u.nombre = self.form_nombre
-                u.apellido = self.form_apellido
-                u.email = self.form_email
-                u.telefono = self.form_telefono
-                u.tipo = self.form_tipo
-                
+        with SessionLocal() as db:
+            try:
+                update_data = {
+                    "dni": self.form_dni.strip().upper() if self.form_dni.strip() else None,
+                    "nombre": self.form_nombre.strip(),
+                    "apellido": self.form_apellido.strip(),
+                    "email": self.form_email.strip().lower(),
+                    "telefono": self.form_telefono.strip() if self.form_telefono.strip() else None,
+                    "tipo": self.form_tipo,
+                }
                 if self.form_password.strip():
-                    u.contrasena_hash = RegisterService.hash_password(self.form_password)
+                    update_data["contrasena_hash"] = RegisterService.hash_password(self.form_password)
 
-                db.commit()
+                UserService.update_user(db, self.current_id, **update_data)
                 self.show_modal_editar = False
                 return [
                     UserState.load_users,
-                    rx.window_alert("Usuario actualizado correctamente.")
+                    rx.window_alert("Usuario actualizado correctamente."),
                 ]
-        except Exception as e:
-            db.rollback()
-            return rx.window_alert(f"Error al actualizar: {str(e)}")
-        finally:
-            db.close()
+            except Exception as e:
+                db.rollback()
+                return rx.window_alert(f"Error al actualizar: {str(e)}")
 
     # --- ELIMINAR USUARIO EN MYSQL ---
     @rx.event
@@ -235,18 +226,13 @@ class UserState(rx.State):
         if not app_state.is_logged_in or not app_state.is_admin:
             return rx.window_alert("No tienes permisos para realizar esta acción.")
 
-        db = SessionLocal()
-        try:
-            u = db.query(UsuarioORM).filter(UsuarioORM.id_usuario == id_usuario).first()
-            if u:
-                db.delete(u)
-                db.commit()
+        with SessionLocal() as db:
+            try:
+                UserService.delete_user(db, id_usuario)
                 return [
                     UserState.load_users,
-                    rx.window_alert(f"Usuario #{id_usuario} eliminado con éxito.")
+                    rx.window_alert(f"Usuario #{id_usuario} eliminado con éxito."),
                 ]
-        except Exception as e:
-            db.rollback()
-            return rx.window_alert(f"No se pudo eliminar el usuario: {str(e)}")
-        finally:
-            db.close()
+            except Exception as e:
+                db.rollback()
+                return rx.window_alert(f"No se pudo eliminar el usuario: {str(e)}")

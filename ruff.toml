@@ -1,0 +1,7 @@
+# Reglas mínimas para empezar: errores reales (imports/variables sin usar,
+# nombres indefinidos, errores de sintaxis). Se pueden ampliar poco a poco.
+target-version = "py312"
+extend-exclude = [".web", ".states", "reflex.lock"]
+
+[lint]
+select = ["F", "E9"]

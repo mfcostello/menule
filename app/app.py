@@ -13,7 +13,7 @@ from app.pages.reservas import reservas_page
 from app.pages.perfil import perfil_page
 from app.pages.pedidos import pedidos_page
 from app.pages.stock import stock_page
-from app.pages.visitante_reserva import visitante_reserva_page
+from app.pages import visitante_reserva  # noqa: F401  (registra /visitante/reserva)
 
 from app.states.home_state import HomeState
 from app.states.plato_state import PlatoState
@@ -23,6 +23,7 @@ from app.states.stock_state import StockState
 from app.states.reserva_state import ReservaState
 from app.states.user_state import UserState
 from app.states.estadistica_state import EstadisticaState
+from app.states.auth_state import AppState
 
 
 app = rx.App()
@@ -45,7 +46,7 @@ app.add_page(
     home_page,
     route="/home",
     title="Inicio | MenULE",
-    on_load=HomeState.load_dashboard_data,
+    on_load=[AppState.requerir_sesion, HomeState.load_dashboard_data],
 )
 
 # Menús
@@ -53,18 +54,21 @@ app.add_page(
     menus_page,
     route="/menus",
     title="Menús | MenULE",
+    on_load=AppState.requerir_sesion,
 )
 
 app.add_page(
     menus_page,
     route="/menu",
     title="Menú del Día | MenULE",
+    on_load=AppState.requerir_sesion,
 )
 
 app.add_page(
     menus_page,
     route="/visitante",
     title="Menú del Día | MenULE",
+    on_load=AppState.requerir_sesion,
 )
 
 # Reservas
@@ -145,9 +149,10 @@ app.add_page(
 
 # Perfil de Usuario
 app.add_page(
-    perfil_page, 
-    route="/perfil", 
+    perfil_page,
+    route="/perfil",
     title="Mi Perfil | MenULE",
+    on_load=AppState.requerir_sesion,
 )
 
 # Inventario de Stock
@@ -158,10 +163,5 @@ app.add_page(
     on_load=StockState.cargar_stock,
 )
 
-
-app.add_page(
-    visitante_reserva_page,
-    route="/visitante/reserva",
-    title="Reserva Visitante | MenULE",
-)
-
+# /visitante/reserva se registra en app/pages/visitante_reserva.py con @rx.page
+# (incluye su on_load); añadirla también aquí duplicaba la ruta.

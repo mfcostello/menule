@@ -2,6 +2,7 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func
 from app.models import Pago, Incidencia, Usuario
+from app.services.pago_service import FILTRO_VENTAS
 
 
 class EstadisticaService:
@@ -16,6 +17,7 @@ class EstadisticaService:
                 func.count(Pago.id_pago).label("cantidad_pagos")
             )
             .outerjoin(Usuario, Pago.id_usuario == Usuario.id_usuario)
+            .filter(*FILTRO_VENTAS)  # sin recargas ni pagos reembolsados
             .group_by(Usuario.tipo)
             .all()
         )
@@ -24,6 +26,7 @@ class EstadisticaService:
             {
                 "rol": str(row.rol).replace("_", " ").capitalize(),
                 "total_pagado": float(row.total_pagado),
+                "total_pagado_str": f"{float(row.total_pagado):.2f} €",
                 "cantidad_pagos": int(row.cantidad_pagos)
             }
             for row in resultados
@@ -59,14 +62,15 @@ class EstadisticaService:
             ORDER BY fecha ASC 
             LIMIT 30
         """)
-        
+
         try:
             resultados = db.execute(query).fetchall()
             return [
                 {
                     "fecha": str(row.fecha),
                     "total_reservas": int(row.total_reservas or 0),
-                    "ingresos": float(row.ingresos or 0.0)
+                    "ingresos": float(row.ingresos or 0.0),
+                    "ingresos_str": f"{float(row.ingresos or 0.0):.2f} €",
                 }
                 for row in resultados
             ]

@@ -1,7 +1,4 @@
 # app/utils/email_utils.py
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 def enviar_correo(destino: str, asunto: str, cuerpo: str):
     """

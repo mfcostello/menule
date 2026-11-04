@@ -2,7 +2,7 @@ from datetime import date
 from typing import Optional
 from sqlalchemy import String, or_
 from sqlalchemy.orm import Session, joinedload
-from app.models import Reserva, Usuario, Menu
+from app.models import Reserva, Usuario
 
 
 class PedidoService:
@@ -60,23 +60,3 @@ class PedidoService:
 
         # 3. Muestra el identificador del menú asignado si no hay platos personalizados guardados
         return [f"Menú #{reserva.id_menu} Standard"]
-
-    @staticmethod
-    def actualizar_estado_pedido(db: Session, id_reserva: int, nuevo_estado: str) -> bool:
-        """Actualiza el estado textual y el bit de estado de la reserva."""
-        reserva = db.query(Reserva).filter(Reserva.id_reserva == id_reserva).first()
-        if not reserva:
-            return False
-
-        if nuevo_estado == "recogida":
-            reserva.estado = "recogida"
-            reserva.estado_bit = True
-        elif nuevo_estado == "cancelada":
-            reserva.estado = "cancelada"
-            reserva.estado_bit = False
-        elif nuevo_estado == "confirmada":
-            reserva.estado = "confirmada"
-            reserva.estado_bit = False
-
-        db.commit()
-        return True

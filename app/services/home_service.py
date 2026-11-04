@@ -1,24 +1,20 @@
 from datetime import date
-from typing import Any
+from typing import Any, Optional
 import traceback
-
-from sqlalchemy.orm import joinedload
-
+from sqlalchemy.orm import Session, joinedload
 from app.database import SessionLocal
-from app.models import (
-    Usuario,
-    Menu,
-    Reserva,
-    Incidencia,
-)
+from app.models import Usuario, Menu, Reserva, Incidencia
 
 
 class HomeService:
 
     @staticmethod
-    def get_dashboard_stats() -> dict[str, int]:
+    def get_dashboard_stats(db: Optional[Session] = None) -> dict[str, int]:
         """Obtiene las estadísticas principales del dashboard."""
-        db = SessionLocal()
+        close_db = False
+        if db is None:
+            db = SessionLocal()
+            close_db = True
 
         try:
             total_users = db.query(Usuario).count()
@@ -42,15 +38,18 @@ class HomeService:
                 "total_incidents": 0,
             }
         finally:
-            db.close()
+            if close_db:
+                db.close()
 
     @staticmethod
-    def get_upcoming_menus() -> list[dict[str, Any]]:
+    def get_upcoming_menus(db: Optional[Session] = None) -> list[dict[str, Any]]:
         """Obtiene los próximos menús programados."""
-        db = SessionLocal()
+        close_db = False
+        if db is None:
+            db = SessionLocal()
+            close_db = True
 
         try:
-
             menus = (
                 db.query(Menu)
                 .options(joinedload(Menu.platos))
@@ -60,21 +59,20 @@ class HomeService:
                 .all()
             )
 
-
             resultado = []
-
             for menu in menus:
                 nombres_platos = [
                     plato.nombre for plato in menu.platos
                 ] if hasattr(menu, "platos") and menu.platos else []
 
+                disponible = getattr(menu, "disponible", True)
                 resultado.append(
                     {
                         "fecha": menu.fecha.strftime("%d/%m/%Y") if menu.fecha else "",
                         "servicio": menu.tipo.capitalize() if menu.tipo else "Servicio",
                         "principal": " + ".join(nombres_platos) if nombres_platos else "Sin platos asignados",
-                        "estado": "Disponible" if getattr(menu, "disponible", True) else "Completo",
-                        "badge_color": "green" if getattr(menu, "disponible", True) else "red",
+                        "estado": "Disponible" if disponible else "Completo",
+                        "badge_color": "green" if disponible else "red",
                     }
                 )
 
@@ -84,4 +82,5 @@ class HomeService:
             traceback.print_exc()
             return []
         finally:
-            db.close()
+            if close_db:
+                db.close()

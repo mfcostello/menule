@@ -1,8 +1,14 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from decimal import Decimal
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import String, cast, func
-from app.models import Pago, Usuario, Estudiante, Profesor
+from app.models import Pago, Usuario
+from app.services import monedero_service
+
+
+# Pagos que cuentan como venta: completados y asociados a una reserva
+FILTRO_VENTAS = (Pago.estado == "completado", Pago.id_reserva.isnot(None))
 
 
 class PagoService:
@@ -32,8 +38,15 @@ class PagoService:
     @staticmethod
     def get_kpis(db: Session) -> Dict[str, Any]:
         """Calcula agregados y estadísticas de los pagos para el panel."""
-        ingresos_completados = db.query(func.sum(Pago.monto)).filter(Pago.estado == "completado").scalar() or 0.0
-        ingresos_pendientes = db.query(func.sum(Pago.monto)).filter(Pago.estado == "pendiente").scalar() or 0.0
+        # Ingresos = menús vendidos. Las recargas del monedero no cuentan: ese
+        # dinero se contabiliza cuando se gasta en una reserva (si no, se
+        # sumaría dos veces).
+        ingresos_completados = db.query(func.sum(Pago.monto)).filter(*FILTRO_VENTAS).scalar() or 0.0
+        ingresos_pendientes = (
+            db.query(func.sum(Pago.monto))
+            .filter(Pago.estado == "pendiente", Pago.id_reserva.isnot(None))
+            .scalar() or 0.0
+        )
         total_operaciones = db.query(func.count(Pago.id_pago)).scalar() or 0
         tui_bonos = db.query(func.count(Pago.id_pago)).filter(Pago.metodo.in_(["tui", "bono"])).scalar() or 0
         visitantes = db.query(func.count(Pago.id_pago)).filter(Pago.id_usuario == 0).scalar() or 0
@@ -57,26 +70,22 @@ class PagoService:
         return pago
 
     @staticmethod
-    def recargar_saldo_usuario(db: Session, user_id: int, monto: float, metodo: str = "tarjeta") -> bool:
-        """Añade saldo al estudiante o profesor y registra el pago correspondiente."""
-        est = db.query(Estudiante).filter(Estudiante.id_usuario == user_id).first()
-        if est:
-            est.saldo = float(est.saldo or 0.0) + monto
-        else:
-            prof = db.query(Profesor).filter(Profesor.id_usuario == user_id).first()
-            if prof:
-                prof.saldo = float(prof.saldo or 0.0) + monto
-            else:
+    def recargar_saldo_usuario(db: Session, user_id: int, rol: str, monto: Decimal, metodo: str = "tarjeta") -> bool:
+        """Añade saldo al monedero y registra el pago, todo en una única transacción."""
+        try:
+            if not monedero_service.abonar(db, user_id, rol, monto):
+                db.rollback()
                 return False
 
-        # Registrar la transacción
-        nuevo_pago = Pago(
-            id_usuario=user_id,
-            monto=monto,
-            metodo=metodo,
-            fecha_pago=datetime.now(),
-            estado="completado"
-        )
-        db.add(nuevo_pago)
-        db.commit()
-        return True
+            db.add(Pago(
+                id_usuario=user_id,
+                monto=monto,
+                metodo=metodo,
+                fecha_pago=datetime.now(),
+                estado="completado",
+            ))
+            db.commit()
+            return True
+        except Exception:
+            db.rollback()
+            raise

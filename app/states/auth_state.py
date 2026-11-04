@@ -1,10 +1,12 @@
 import reflex as rx
 from typing import List
+from datetime import datetime
 
 from app.config.navigation import NAV_ITEMS, NavigationItem
 from app.database import SessionLocal
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
+from app.models import Estudiante, Profesor
 
 
 class AppState(rx.State):
@@ -39,6 +41,29 @@ class AppState(rx.State):
     def user_saldo_str(self) -> str:
         return f"{self.user_saldo:.2f} €"
 
+    @rx.var
+    def user_role_upper(self) -> str:
+        return self.user_role.upper() if self.user_role else ""
+
+    @rx.var
+    def saludo_actual(self) -> str:
+        hora = datetime.now().hour
+        if 5 <= hora < 12:
+            return "Buenos días, "
+        elif 12 <= hora < 20:
+            return "Buenas tardes, "
+        else:
+            return "Buenas noches, "
+
+    @rx.var
+    def fecha_hoy_str(self) -> str:
+        meses = [
+            "enero", "febrero", "marzo", "abril", "mayo", "junio",
+            "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+        ]
+        hoy = datetime.now()
+        return f"{hoy.day} {meses[hoy.month - 1]} {hoy.year}"
+
     # =====================================
     # LOGIN EVENT
     # =====================================
@@ -64,10 +89,11 @@ class AppState(rx.State):
                 self.user_id = user.id_usuario
                 self.user_name = f"{user.nombre} {user.apellido}"
                 self.user_email = user.email
-                self.user_role = str(user.tipo).lower() if user.tipo else ""
+                role = str(user.tipo).lower() if user.tipo else ""
+                self.user_role = role
                 self.user_dni = user.dni or f"ID-{user.id_usuario}"
 
-                # Obtención blindada de datos (soporta objeto único o lista)
+                # Obtención de perfil vinculado (Estudiante / Profesor)
                 est_info = getattr(user, "estudiante_info", None)
                 prof_info = getattr(user, "profesor_info", None)
 
@@ -76,12 +102,30 @@ class AppState(rx.State):
                 if isinstance(prof_info, list) and len(prof_info) > 0:
                     prof_info = prof_info[0]
 
-                if self.is_estudiante and est_info:
-                    self.user_saldo = float(getattr(est_info, "saldo", 0.0) or 0.0)
-                    self.user_tui_num = getattr(est_info, "tui_numero", "") or "Sin TUI"
-                elif self.is_profesor and prof_info:
-                    self.user_saldo = float(getattr(prof_info, "saldo", 0.0) or 0.0)
-                    self.user_tui_num = getattr(prof_info, "tui_numero", "") or "Sin TUI"
+                if role == "estudiante":
+                    if est_info:
+                        self.user_saldo = float(getattr(est_info, "saldo", 0.0) or 0.0)
+                        self.user_tui_num = getattr(est_info, "tui_numero", "") or f"TUI-{user.dni or user.id_usuario}"
+                    else:
+                        # Auto-recuperación si el usuario fue creado sin fila en Estudiantes
+                        tui = f"TUI-{user.dni or user.id_usuario}"
+                        nuevo_est = Estudiante(id_usuario=user.id_usuario, grado_academico="Grado", tui_numero=tui, saldo=0.0)
+                        db.add(nuevo_est)
+                        db.commit()
+                        self.user_saldo = 0.0
+                        self.user_tui_num = tui
+                elif role == "profesor":
+                    if prof_info:
+                        self.user_saldo = float(getattr(prof_info, "saldo", 0.0) or 0.0)
+                        self.user_tui_num = getattr(prof_info, "tui_numero", "") or f"TUI-{user.dni or user.id_usuario}"
+                    else:
+                        # Auto-recuperación si el profesor fue creado sin fila en Profesores
+                        tui = f"TUI-{user.dni or user.id_usuario}"
+                        nuevo_prof = Profesor(id_usuario=user.id_usuario, grado_academico="Docente", tui_numero=tui, saldo=0.0)
+                        db.add(nuevo_prof)
+                        db.commit()
+                        self.user_saldo = 0.0
+                        self.user_tui_num = tui
                 else:
                     self.user_saldo = 0.0
                     self.user_tui_num = self.user_dni
@@ -171,6 +215,20 @@ class AppState(rx.State):
     def is_visitante(self) -> bool:
         return self.user_role == "visitante"
 
+    @rx.event
+    def requerir_sesion(self):
+        """on_load para páginas que requieren sesión (incluida la de visitante)."""
+        if not self.is_logged_in:
+            return rx.redirect("/")
+
+    def _tiene_rol(self, *roles: str) -> bool:
+        """Comprobación de permisos para usar dentro de los event handlers.
+
+        Cualquier event handler puede invocarse desde el navegador, así que
+        toda acción que modifique datos debe comprobar el rol en el servidor.
+        """
+        return self.is_logged_in and self.user_role in roles
+
     # =====================================
     # NAVEGACIÓN DINÁMICA
     # =====================================
@@ -214,44 +272,3 @@ class AppState(rx.State):
 
     def limpiar_notificaciones(self):
         self.notificaciones = []
-
-    # =====================================
-    # DESCONTAR SALDO PERSISTENTE EN BD
-    # =====================================
-    @rx.event
-    def descontar_saldo_menu(self) -> bool:
-        """Descuenta el precio exacto según rol (5.50€ Estudiante / 6.50€ Profesor) y guarda en BD."""
-        if not self.is_logged_in or self.user_id == 0:
-            return False
-
-        # Tarifa exacta por rol
-        precio = 5.50 if self.is_estudiante else (6.50 if self.is_profesor else 7.50)
-
-        if self.user_saldo < precio:
-            return False
-
-        try:
-            with SessionLocal() as db:
-                if self.is_estudiante:
-                    from app.models import Estudiante
-                    est = db.query(Estudiante).filter(Estudiante.id_usuario == self.user_id).first()
-                    if est:
-                        nuevo_saldo = float(est.saldo or 0.0) - precio
-                        est.saldo = nuevo_saldo
-                        db.commit()
-                        db.refresh(est)
-                        self.user_saldo = float(est.saldo)
-                elif self.is_profesor:
-                    from app.models import Profesor
-                    prof = db.query(Profesor).filter(Profesor.id_usuario == self.user_id).first()
-                    if prof:
-                        nuevo_saldo = float(prof.saldo or 0.0) - precio
-                        prof.saldo = nuevo_saldo
-                        db.commit()
-                        db.refresh(prof)
-                        self.user_saldo = float(prof.saldo)
-
-            return True
-        except Exception as e:
-            print("Error al descontar saldo de la BD:", e)
-            return False

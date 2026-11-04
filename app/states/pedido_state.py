@@ -1,10 +1,9 @@
 import reflex as rx
-from datetime import date
 from pydantic import BaseModel
 from typing import Optional
 
 from app.database import SessionLocal
-from app.services.stock_service import StockService
+from app.services.reserva_service import ReservaService, ReservaError
 from app.services.pedido_service import PedidoService
 from app.states.auth_state import AppState
 
@@ -109,21 +108,30 @@ class PedidoState(rx.State):
     @rx.event
     async def marcar_recogido(self, id_reserva: int):
         app_state = await self.get_state(AppState)
-        if not app_state.is_logged_in or not (app_state.is_admin or app_state.is_cocina):
+        if not app_state._tiene_rol("administrador", "personal_comedor"):
             return rx.window_alert("No tienes permisos para realizar esta acción.")
 
-        with SessionLocal() as db:
-            PedidoService.actualizar_estado_pedido(db, id_reserva, "recogida")
-            # Descontar automáticamente del inventario al entregar
-            StockService.descontar_stock_por_reserva(db, id_reserva)
+        try:
+            with SessionLocal() as db:
+                # Cambia el estado y descuenta el inventario en la misma transacción
+                ReservaService.marcar_recogida(db, id_reserva)
+        except ReservaError as e:
+            return rx.window_alert(str(e))
         return PedidoState.cargar_pedidos
 
     @rx.event
     async def marcar_cancelado(self, id_reserva: int):
         app_state = await self.get_state(AppState)
-        if not app_state.is_logged_in or not (app_state.is_admin or app_state.is_cocina):
+        if not app_state._tiene_rol("administrador", "personal_comedor"):
             return rx.window_alert("No tienes permisos para realizar esta acción.")
 
-        with SessionLocal() as db:
-            PedidoService.actualizar_estado_pedido(db, id_reserva, "cancelada")
+        try:
+            with SessionLocal() as db:
+                devuelto = ReservaService.cancelar_reserva(db, id_reserva)
+        except ReservaError as e:
+            return rx.window_alert(str(e))
+
+        app_state.agregar_notificacion(
+            f"Pedido #{id_reserva} cancelado. Reembolsado al monedero: {devuelto:.2f} €."
+        )
         return PedidoState.cargar_pedidos

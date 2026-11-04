@@ -1,13 +1,12 @@
 import reflex as rx
 from pydantic import BaseModel
 from typing import Optional, List, Union
-from datetime import datetime
 
 from app.database import SessionLocal
 from sqlalchemy import cast, String
-from app.services.reserva_service import ReservaService
+from app.services.reserva_service import ReservaService, ReservaError
 from app.states.auth_state import AppState
-from app.models import Reserva, Plato
+from app.models import Reserva
 
 
 class ReservaSchema(BaseModel):
@@ -100,55 +99,36 @@ class ReservaState(rx.State):
             ]
         self.is_loading = False
 
-    # REALIZAR RESERVA GUARDANDO LOS 3 PLATOS ELEGIDOS
-    @rx.event
-    async def realizar_reserva(self, id_menu: int, ids_platos: List[int]):
-        """
-        id_menu: ID del menú del día
-        ids_platos: Lista con los IDs de los 3 platos elegidos (1º, 2º y Postre)
-        """
-        app_state = await self.get_state(AppState)
-        if not app_state.is_logged_in or not app_state.user_id:
-            return rx.window_alert("Debes iniciar sesión para realizar una reserva.")
-
-        exito_pago = app_state.descontar_saldo_menu()
-        if not exito_pago:
-            return rx.window_alert("No tienes suficiente saldo en tu Monedero TUI.")
-
-        with SessionLocal() as db:
-            # Obtener los 3 platos de la BD
-            platos_objetos = []
-            if ids_platos:
-                platos_objetos = db.query(Plato).filter(Plato.id_plato.in_(ids_platos)).all()
-
-            nueva_reserva = Reserva(
-                id_usuario=app_state.user_id,
-                id_menu=id_menu,
-                fecha_reserva=datetime.now(),
-                estado="confirmada",
-                estado_bit=False,
-                platos=platos_objetos  # 👈 Asigna únicamente los 3 elegidos
-            )
-            db.add(nueva_reserva)
-            db.commit()
-
-        app_state.agregar_notificacion("¡Reserva realizada e importe descontado correctamente!")
-        return ReservaState.load_reservas
+    # Las reservas se crean desde MenuState.realizar_reserva (cobro atómico).
 
     @rx.event
     async def marcar_recogida(self, id_reserva: int):
-        with SessionLocal() as db:
-            ReservaService.actualizar_estado(db, id_reserva, estado="recogida", estado_bit=1)
-        
-        plato_state = await self.get_state(AppState)
-        plato_state.agregar_notificacion(f"Reserva #{id_reserva} marcada como RECOGIDA.")
+        app_state = await self.get_state(AppState)
+        if not app_state._tiene_rol("administrador", "personal_comedor"):
+            return rx.window_alert("No tienes permisos para realizar esta acción.")
+
+        try:
+            with SessionLocal() as db:
+                ReservaService.marcar_recogida(db, id_reserva)
+        except ReservaError as e:
+            return rx.window_alert(str(e))
+
+        app_state.agregar_notificacion(f"Reserva #{id_reserva} marcada como RECOGIDA.")
         return ReservaState.load_reservas
 
     @rx.event
     async def marcar_cancelada(self, id_reserva: int):
-        with SessionLocal() as db:
-            ReservaService.actualizar_estado(db, id_reserva, estado="cancelada", estado_bit=0)
-        
-        plato_state = await self.get_state(AppState)
-        plato_state.agregar_notificacion(f"Reserva #{id_reserva} ha sido CANCELADA.")
+        app_state = await self.get_state(AppState)
+        if not app_state._tiene_rol("administrador", "personal_comedor"):
+            return rx.window_alert("No tienes permisos para realizar esta acción.")
+
+        try:
+            with SessionLocal() as db:
+                devuelto = ReservaService.cancelar_reserva(db, id_reserva)
+        except ReservaError as e:
+            return rx.window_alert(str(e))
+
+        app_state.agregar_notificacion(
+            f"Reserva #{id_reserva} CANCELADA. Reembolsado al monedero: {devuelto:.2f} €."
+        )
         return ReservaState.load_reservas

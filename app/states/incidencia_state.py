@@ -4,6 +4,24 @@ from typing import List, Optional, Dict, Union
 from app.database import SessionLocal
 from app.services.incidencia_service import IncidenciaService
 from app.states.auth_state import AppState
+from app.models import Incidencia
+
+ESTADOS_INCIDENCIA = {"abierta", "en_proceso", "resuelta", "cerrada"}
+
+
+def _puede_gestionar(app_state: AppState, id_incidencia: int) -> bool:
+    """Admin gestiona todas; el personal de comedor solo las dirigidas a cocina."""
+    if app_state._tiene_rol("administrador"):
+        return True
+    if not app_state._tiene_rol("personal_comedor"):
+        return False
+    with SessionLocal() as db:
+        destino = (
+            db.query(Incidencia.destino)
+            .filter(Incidencia.id_incidencia == id_incidencia)
+            .scalar()
+        )
+    return destino == "cocina"
 
 
 class IncidenciaSchema(BaseModel):
@@ -91,11 +109,21 @@ class IncidenciaState(rx.State):
     # ==================== CARGA DE DATOS ====================
     @rx.event
     async def load_incidencias(self):
-        self.is_loading = True
         app = await self.get_state(AppState)
+        if not app.is_logged_in:
+            self.incidencias = []
+            return rx.redirect("/")
 
-        rol_usuario = app.user_role or "estudiante"
+        rol_usuario = app.user_role
         user_id = app.user_id
+
+        # El servicio devuelve TODAS las incidencias para roles no contemplados,
+        # así que solo los roles conocidos pueden consultarlas.
+        if rol_usuario not in ("administrador", "personal_comedor", "estudiante", "profesor"):
+            self.incidencias = []
+            return
+
+        self.is_loading = True
 
         with SessionLocal() as db:
             resultados = IncidenciaService.get_all(
@@ -161,6 +189,8 @@ class IncidenciaState(rx.State):
             return
 
         app_state = await self.get_state(AppState)
+        if not _puede_gestionar(app_state, self.incidencia_seleccionada.id_incidencia):
+            return rx.window_alert("No tienes permisos para responder a esta incidencia.")
         admin_id = app_state.user_id
 
         with SessionLocal() as db:
@@ -180,10 +210,15 @@ class IncidenciaState(rx.State):
 
     @rx.event
     async def cambiar_estado_rapido(self, id_incidencia: int, nuevo_estado: str):
+        app_state = await self.get_state(AppState)
+        if not _puede_gestionar(app_state, id_incidencia):
+            return rx.window_alert("No tienes permisos para modificar esta incidencia.")
+        if nuevo_estado not in ESTADOS_INCIDENCIA:
+            return rx.window_alert("Estado de incidencia no válido.")
+
         with SessionLocal() as db:
             IncidenciaService.cambiar_estado(db, id_incidencia, nuevo_estado)
 
-        app_state = await self.get_state(AppState)
         app_state.agregar_notificacion(
             f"Incidencia #{id_incidencia} cambió a {nuevo_estado.upper()}."
         )

@@ -1,4 +1,5 @@
 import reflex as rx
+from app.config.precios import PRECIO_ESTUDIANTE_STR, PRECIO_PROFESOR_STR, PRECIO_VISITANTE_STR
 
 from app.components.layout import layout
 from app.states.auth_state import AppState
@@ -329,7 +330,7 @@ def admin_dashboard() -> rx.Component:
 # 2. ESTUDIANTE Y PROFESOR DASHBOARD
 # ------------------------------------------------------------------------------
 def student_prof_dashboard() -> rx.Component:
-    precio_texto = rx.cond(AppState.is_estudiante, "5,50 €", "6,50 €")
+    precio_texto = rx.cond(AppState.is_estudiante, PRECIO_ESTUDIANTE_STR, PRECIO_PROFESOR_STR)
     tarifa_tipo = rx.cond(AppState.is_estudiante, "Tarifa Estudiante", "Tarifa Profesorado")
 
     return rx.vstack(
@@ -647,7 +648,7 @@ def visitante_dashboard() -> rx.Component:
                                 color="#111827",
                             ),
                             rx.text(
-                                "7,50 € por menú completo",
+                                f"{PRECIO_VISITANTE_STR} por menú completo",
                                 size="2",
                                 color="#6B7280",
                             ),
