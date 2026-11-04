@@ -7,6 +7,10 @@ from app.models import Pago, Usuario
 from app.services import monedero_service
 
 
+# Pagos que cuentan como venta: completados y asociados a una reserva
+FILTRO_VENTAS = (Pago.estado == "completado", Pago.id_reserva.isnot(None))
+
+
 class PagoService:
 
     @staticmethod
@@ -34,8 +38,15 @@ class PagoService:
     @staticmethod
     def get_kpis(db: Session) -> Dict[str, Any]:
         """Calcula agregados y estadísticas de los pagos para el panel."""
-        ingresos_completados = db.query(func.sum(Pago.monto)).filter(Pago.estado == "completado").scalar() or 0.0
-        ingresos_pendientes = db.query(func.sum(Pago.monto)).filter(Pago.estado == "pendiente").scalar() or 0.0
+        # Ingresos = menús vendidos. Las recargas del monedero no cuentan: ese
+        # dinero se contabiliza cuando se gasta en una reserva (si no, se
+        # sumaría dos veces).
+        ingresos_completados = db.query(func.sum(Pago.monto)).filter(*FILTRO_VENTAS).scalar() or 0.0
+        ingresos_pendientes = (
+            db.query(func.sum(Pago.monto))
+            .filter(Pago.estado == "pendiente", Pago.id_reserva.isnot(None))
+            .scalar() or 0.0
+        )
         total_operaciones = db.query(func.count(Pago.id_pago)).scalar() or 0
         tui_bonos = db.query(func.count(Pago.id_pago)).filter(Pago.metodo.in_(["tui", "bono"])).scalar() or 0
         visitantes = db.query(func.count(Pago.id_pago)).filter(Pago.id_usuario == 0).scalar() or 0

@@ -1,4 +1,5 @@
 import reflex as rx
+from app.config.precios import PRECIO_ESTUDIANTE_STR, PRECIO_PROFESOR_STR, PRECIO_VISITANTE_STR
 
 from app.components.layout import layout
 from app.states.menu_state import MenuState, PlatoSimpleSchema
@@ -683,8 +684,8 @@ def user_menu_view() -> rx.Component:
 
     precio_texto = rx.cond(
         AppState.is_estudiante,
-        "5,50 €",
-        rx.cond(AppState.is_profesor, "6,50 €", "7,50 €")
+        PRECIO_ESTUDIANTE_STR,
+        rx.cond(AppState.is_profesor, PRECIO_PROFESOR_STR, PRECIO_VISITANTE_STR)
     )
 
     return rx.vstack(
@@ -764,7 +765,7 @@ def user_menu_view() -> rx.Component:
                         es_visitante,
                         # Botón destacado para Visitantes -> Redirige a la reserva
                         rx.button(
-                            rx.text("Ir a Reservar Menú (7,50 €)", weight="bold"),
+                            rx.text(f"Ir a Reservar Menú ({PRECIO_VISITANTE_STR})", weight="bold"),
                             rx.icon("arrow-right", size=20),
                             size="4",
                             color_scheme="purple",

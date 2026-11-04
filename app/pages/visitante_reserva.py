@@ -1,4 +1,5 @@
 import reflex as rx
+from app.config.precios import PRECIO_ESTUDIANTE_STR, PRECIO_PROFESOR_STR, PRECIO_VISITANTE_STR
 from app.states.visitante_state import VisitanteState
 from app.states.menu_state import PlatoSimpleSchema
 from app.components.layout import layout
@@ -110,7 +111,7 @@ def modal_pago_tarjeta() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.content(
             rx.dialog.title("Pago con Tarjeta - Tarifa Visitante"),
-            rx.dialog.description("El importe total a pagar es de 7,50 €."),
+            rx.dialog.description(f"El importe total a pagar es de {PRECIO_VISITANTE_STR}."),
             rx.vstack(
                 rx.input(placeholder="Número de Tarjeta (16 dígitos)", width="100%"),
                 rx.hstack(
@@ -120,7 +121,7 @@ def modal_pago_tarjeta() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.button("Cancelar", on_click=VisitanteState.cerrar_modal_pago, variant="soft", color_scheme="gray"),
-                    rx.button("Pagar 7,50 €", on_click=VisitanteState.proceder_al_correo, color_scheme="green"),
+                    rx.button(f"Pagar {PRECIO_VISITANTE_STR}", on_click=VisitanteState.proceder_al_correo, color_scheme="green"),
                     justify="end",
                     width="100%",
                     spacing="3"
@@ -141,7 +142,7 @@ def visitante_reserva_content() -> rx.Component:
                 rx.vstack(
                     rx.hstack(
                         rx.badge("Acceso Visitante", color_scheme="purple", variant="surface", radius="full"),
-                        rx.badge("7,50 €", color_scheme="green", variant="surface", radius="full"),
+                        rx.badge(PRECIO_VISITANTE_STR, color_scheme="green", variant="surface", radius="full"),
                         spacing="2",
                     ),
                     rx.heading("Elige tu Menú de Hoy", size="6", weight="bold", color="#111827"),
@@ -194,7 +195,7 @@ def visitante_reserva_content() -> rx.Component:
                     rx.spacer(),
                     rx.button(
                         rx.icon("credit-card", size=20),
-                        rx.text("Pagar Menú (7,50 €)", weight="bold"),
+                        rx.text(f"Pagar Menú ({PRECIO_VISITANTE_STR})", weight="bold"),
                         size="4",
                         color_scheme="purple",
                         radius="large",

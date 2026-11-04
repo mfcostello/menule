@@ -179,14 +179,22 @@ WHERE i.stock_actual <= i.stock_minimo;
 
 -- Estadísticas diarias de reservas, ingresos y platos vendidos
 CREATE OR REPLACE VIEW VistaEstadisticasDiarias AS
+-- Los ingresos se suman en una subconsulta: unir directamente con
+-- ReservaPlatos repetiría cada pago una vez por plato (x3 en un menú completo).
 SELECT 
     DATE(r.fecha_reserva) AS fecha,
-    COUNT(r.id_reserva) AS total_reservas,
+    COUNT(DISTINCT r.id_reserva) AS total_reservas,
     SUM(p.monto) AS ingresos,
-    GROUP_CONCAT(DISTINCT rp.id_plato) AS platos_vendidos
+    (
+        SELECT GROUP_CONCAT(DISTINCT rp.id_plato)
+        FROM ReservaPlatos rp
+        JOIN Reservas r2 ON r2.id_reserva = rp.id_reserva
+        WHERE DATE(r2.fecha_reserva) = DATE(r.fecha_reserva)
+          AND r2.estado <> 'cancelada'
+    ) AS platos_vendidos
 FROM Reservas r
 JOIN Pagos p ON r.id_reserva = p.id_reserva AND p.estado = 'completado'
-LEFT JOIN ReservaPlatos rp ON r.id_reserva = rp.id_reserva
+WHERE r.estado <> 'cancelada'
 GROUP BY DATE(r.fecha_reserva);
 
 -- -----------------------------------------------------

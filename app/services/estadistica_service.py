@@ -2,6 +2,7 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func
 from app.models import Pago, Incidencia, Usuario
+from app.services.pago_service import FILTRO_VENTAS
 
 
 class EstadisticaService:
@@ -16,6 +17,7 @@ class EstadisticaService:
                 func.count(Pago.id_pago).label("cantidad_pagos")
             )
             .outerjoin(Usuario, Pago.id_usuario == Usuario.id_usuario)
+            .filter(*FILTRO_VENTAS)  # sin recargas ni pagos reembolsados
             .group_by(Usuario.tipo)
             .all()
         )

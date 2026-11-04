@@ -4,7 +4,7 @@ from typing import Optional, List, Union
 
 from app.database import SessionLocal
 from sqlalchemy import cast, String
-from app.services.reserva_service import ReservaService
+from app.services.reserva_service import ReservaService, ReservaError
 from app.states.auth_state import AppState
 from app.models import Reserva
 
@@ -107,8 +107,11 @@ class ReservaState(rx.State):
         if not app_state._tiene_rol("administrador", "personal_comedor"):
             return rx.window_alert("No tienes permisos para realizar esta acción.")
 
-        with SessionLocal() as db:
-            ReservaService.actualizar_estado(db, id_reserva, estado="recogida", estado_bit=1)
+        try:
+            with SessionLocal() as db:
+                ReservaService.marcar_recogida(db, id_reserva)
+        except ReservaError as e:
+            return rx.window_alert(str(e))
 
         app_state.agregar_notificacion(f"Reserva #{id_reserva} marcada como RECOGIDA.")
         return ReservaState.load_reservas
@@ -119,8 +122,13 @@ class ReservaState(rx.State):
         if not app_state._tiene_rol("administrador", "personal_comedor"):
             return rx.window_alert("No tienes permisos para realizar esta acción.")
 
-        with SessionLocal() as db:
-            ReservaService.actualizar_estado(db, id_reserva, estado="cancelada", estado_bit=0)
+        try:
+            with SessionLocal() as db:
+                devuelto = ReservaService.cancelar_reserva(db, id_reserva)
+        except ReservaError as e:
+            return rx.window_alert(str(e))
 
-        app_state.agregar_notificacion(f"Reserva #{id_reserva} ha sido CANCELADA.")
+        app_state.agregar_notificacion(
+            f"Reserva #{id_reserva} CANCELADA. Reembolsado al monedero: {devuelto:.2f} €."
+        )
         return ReservaState.load_reservas

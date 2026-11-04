@@ -25,14 +25,14 @@ class StockService:
         return False
 
     @staticmethod
-    def descontar_stock_por_reserva(db: Session, id_reserva: int) -> bool:
+    def descontar_stock_por_reserva(db: Session, reserva: Reserva) -> bool:
         """
         Al entregar una comanda, descuenta stock de los ingredientes asociados a los platos
         específicamente elegidos en la reserva.
+
+        No hace commit: se llama desde ReservaService.marcar_recogida, que confirma
+        el cambio de estado y el descuento de stock en la misma transacción.
         """
-        reserva = db.query(Reserva).filter(Reserva.id_reserva == id_reserva).first()
-        if not reserva:
-            return False
 
         # Usar los platos seleccionados en la reserva; si no tuviese asignados, fallback a los del menú
         platos = reserva.platos if reserva.platos else (reserva.menu.platos if reserva.menu else [])
@@ -45,7 +45,6 @@ class StockService:
                 actual = float(ingrediente.stock_actual or 0)
                 ingrediente.stock_actual = max(0.0, actual - 1.0)
 
-        db.commit()
         return True
 
     @staticmethod

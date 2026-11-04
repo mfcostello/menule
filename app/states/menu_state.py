@@ -1,6 +1,6 @@
 import logging
 import reflex as rx
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 from decimal import Decimal
 from pydantic import BaseModel
@@ -9,8 +9,8 @@ from app.config.precios import PRECIO_MENU_POR_ROL
 from app.database import SessionLocal
 from app.services import monedero_service
 from app.services.menu_service import MenuService
-from app.services.reserva_service import ReservaService
-from app.models import Plato, Reserva, Pago
+from app.services.reserva_service import ReservaService, ReservaError
+from app.models import Plato
 from app.states.auth_state import AppState
 
 logger = logging.getLogger(__name__)
@@ -226,59 +226,34 @@ class MenuState(rx.State):
             return rx.window_alert("No hay ningún menú disponible para reservar hoy.")
 
         precio_menu = PRECIO_MENU_POR_ROL[rol]
+        nombres_elegidos = [self.plato_1_sel, self.plato_2_sel, self.postre_sel]
 
-        with SessionLocal() as db:
-            try:
-                # Cobro atómico: falla si no hay saldo suficiente en la BD (no en la sesión)
-                if not monedero_service.descontar(db, app_state.user_id, rol, precio_menu):
-                    db.rollback()
-                    return rx.window_alert("Saldo TUI insuficiente. Por favor, recarga tu monedero.")
-
-                # 🛠️ Buscar los objetos Plato correspondientes a los 3 nombres seleccionados
-                nombres_elegidos = [self.plato_1_sel, self.plato_2_sel, self.postre_sel]
-                objetos_platos = db.query(Plato).filter(Plato.nombre.in_(nombres_elegidos)).all()
-
-                nueva_reserva = Reserva(
-                    id_usuario=app_state.user_id,
-                    id_menu=self.id_menu_hoy,
-                    fecha_reserva=datetime.now(),
-                    estado="confirmada",
-                    estado_bit=False,  # 0 = Pendiente de recogida en cocina
-                    platos=objetos_platos  # 👈 Guardamos los 3 platos elegidos en la tabla intermedia ReservaPlatos
+        try:
+            with SessionLocal() as db:
+                # Comprueba plazas, duplicados y platos; cobra y crea reserva + pago
+                # en una sola transacción (si algo falla, no se cobra nada).
+                ReservaService.crear_reserva_tui(
+                    db, app_state.user_id, rol, self.id_menu_hoy, nombres_elegidos
                 )
-                db.add(nueva_reserva)
-                db.flush()
-
-                nuevo_pago = Pago(
-                    id_usuario=app_state.user_id,
-                    id_reserva=nueva_reserva.id_reserva,
-                    monto=precio_menu,
-                    metodo="tui",
-                    fecha_pago=datetime.now(),
-                    estado="completado"
-                )
-                db.add(nuevo_pago)
-
-                # Cobro, reserva y pago se confirman juntos o no se confirma nada
-                db.commit()
-
                 nuevo_saldo = monedero_service.obtener_saldo(db, app_state.user_id, rol) or Decimal("0")
-                nuevo_saldo_float = float(nuevo_saldo)
-                app_state.user_saldo = nuevo_saldo_float
+        except ReservaError as e:
+            return rx.window_alert(str(e))
+        except Exception:
+            logger.exception("Error al procesar la reserva del usuario %s", app_state.user_id)
+            return rx.window_alert("Ha ocurrido un error al procesar la reserva. No se ha realizado ningún cargo.")
 
-                msg_exito = f"🎉 ¡Reserva confirmada con éxito! Se han descontado {precio_menu:.2f}€ de tu TUI."
-                self.plato_1_sel = ""
-                self.plato_2_sel = ""
-                self.postre_sel = ""
+        nuevo_saldo_float = float(nuevo_saldo)
+        app_state.user_saldo = nuevo_saldo_float
 
-                return [
-                    AppState.agregar_notificacion(msg_exito),
-                    rx.window_alert(f"¡Reserva realizada con éxito! Nuevo saldo: {nuevo_saldo_float:.2f} €"),
-                ]
-            except Exception:
-                db.rollback()
-                logger.exception("Error al procesar la reserva del usuario %s", app_state.user_id)
-                return rx.window_alert("Ha ocurrido un error al procesar la reserva. No se ha realizado ningún cargo.")
+        msg_exito = f"🎉 ¡Reserva confirmada con éxito! Se han descontado {precio_menu:.2f}€ de tu TUI."
+        self.plato_1_sel = ""
+        self.plato_2_sel = ""
+        self.postre_sel = ""
+
+        return [
+            AppState.agregar_notificacion(msg_exito),
+            rx.window_alert(f"¡Reserva realizada con éxito! Nuevo saldo: {nuevo_saldo_float:.2f} €"),
+        ]
 
     # ======================
     # MODALES
