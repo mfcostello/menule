@@ -2,6 +2,7 @@ from typing import List, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import String, cast
+from app.config.precios import PRECIO_MENU_VISITANTE
 from app.models import Reserva, Usuario, Pago, Plato
 
 
@@ -104,7 +105,7 @@ class ReservaService:
         nuevo_pago = Pago(
             id_reserva=nueva_reserva.id_reserva,
             id_usuario=0,
-            monto=7.50,
+            monto=PRECIO_MENU_VISITANTE,
             metodo="tarjeta",
             estado="completado",
             correo=email_visitante,

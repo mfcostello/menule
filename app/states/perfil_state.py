@@ -53,6 +53,9 @@ class PerfilState(rx.State):
 
         app = await self.get_state(AppState)
         user_id = app.user_id
+        if not app.is_logged_in or not user_id or app.is_visitante:
+            self.error_msg = "Debes iniciar sesión para cambiar la contraseña."
+            return
 
         with SessionLocal() as db:
             ok, msg = PerfilService.cambiar_contrasena(

@@ -215,6 +215,14 @@ class AppState(rx.State):
     def is_visitante(self) -> bool:
         return self.user_role == "visitante"
 
+    def _tiene_rol(self, *roles: str) -> bool:
+        """Comprobación de permisos para usar dentro de los event handlers.
+
+        Cualquier event handler puede invocarse desde el navegador, así que
+        toda acción que modifique datos debe comprobar el rol en el servidor.
+        """
+        return self.is_logged_in and self.user_role in roles
+
     # =====================================
     # NAVEGACIÓN DINÁMICA
     # =====================================
@@ -258,43 +266,3 @@ class AppState(rx.State):
 
     def limpiar_notificaciones(self):
         self.notificaciones = []
-
-    # =====================================
-    # DESCONTAR SALDO PERSISTENTE EN BD
-    # =====================================
-    @rx.event
-    def descontar_saldo_menu(self) -> bool:
-        """Descuenta el precio exacto según rol (5.50€ Estudiante / 6.50€ Profesor) y guarda en BD."""
-        if not self.is_logged_in or self.user_id == 0:
-            return False
-
-        es_est = (self.user_role == "estudiante")
-        es_prof = (self.user_role == "profesor")
-        precio = 5.50 if es_est else (6.50 if es_prof else 7.50)
-
-        if self.user_saldo < precio:
-            return False
-
-        try:
-            with SessionLocal() as db:
-                if es_est:
-                    est = db.query(Estudiante).filter(Estudiante.id_usuario == self.user_id).first()
-                    if est:
-                        nuevo_saldo = float(est.saldo or 0.0) - precio
-                        est.saldo = nuevo_saldo
-                        db.commit()
-                        db.refresh(est)
-                        self.user_saldo = float(est.saldo)
-                elif es_prof:
-                    prof = db.query(Profesor).filter(Profesor.id_usuario == self.user_id).first()
-                    if prof:
-                        nuevo_saldo = float(prof.saldo or 0.0) - precio
-                        prof.saldo = nuevo_saldo
-                        db.commit()
-                        db.refresh(prof)
-                        self.user_saldo = float(prof.saldo)
-
-            return True
-        except Exception as e:
-            print("Error al descontar saldo de la BD:", e)
-            return False

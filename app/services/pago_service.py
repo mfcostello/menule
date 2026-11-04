@@ -1,8 +1,10 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from decimal import Decimal
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import String, cast, func
-from app.models import Pago, Usuario, Estudiante, Profesor
+from app.models import Pago, Usuario
+from app.services import monedero_service
 
 
 class PagoService:
@@ -57,26 +59,22 @@ class PagoService:
         return pago
 
     @staticmethod
-    def recargar_saldo_usuario(db: Session, user_id: int, monto: float, metodo: str = "tarjeta") -> bool:
-        """Añade saldo al estudiante o profesor y registra el pago correspondiente."""
-        est = db.query(Estudiante).filter(Estudiante.id_usuario == user_id).first()
-        if est:
-            est.saldo = float(est.saldo or 0.0) + monto
-        else:
-            prof = db.query(Profesor).filter(Profesor.id_usuario == user_id).first()
-            if prof:
-                prof.saldo = float(prof.saldo or 0.0) + monto
-            else:
+    def recargar_saldo_usuario(db: Session, user_id: int, rol: str, monto: Decimal, metodo: str = "tarjeta") -> bool:
+        """Añade saldo al monedero y registra el pago, todo en una única transacción."""
+        try:
+            if not monedero_service.abonar(db, user_id, rol, monto):
+                db.rollback()
                 return False
 
-        # Registrar la transacción
-        nuevo_pago = Pago(
-            id_usuario=user_id,
-            monto=monto,
-            metodo=metodo,
-            fecha_pago=datetime.now(),
-            estado="completado"
-        )
-        db.add(nuevo_pago)
-        db.commit()
-        return True
+            db.add(Pago(
+                id_usuario=user_id,
+                monto=monto,
+                metodo=metodo,
+                fecha_pago=datetime.now(),
+                estado="completado",
+            ))
+            db.commit()
+            return True
+        except Exception:
+            db.rollback()
+            raise

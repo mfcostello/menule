@@ -1,3 +1,4 @@
+import logging
 import reflex as rx
 from pydantic import BaseModel
 from typing import List, Optional, Union
@@ -6,6 +7,12 @@ from app.database import SessionLocal
 from app.services.pago_service import PagoService
 from app.states.auth_state import AppState
 from app.models import Estudiante, Profesor
+from app.services import monedero_service
+from app.config.precios import RECARGA_MINIMA, RECARGA_MAXIMA, METODOS_RECARGA
+
+logger = logging.getLogger(__name__)
+
+ESTADOS_PAGO = {"pendiente", "completado", "fallido", "reembolsado"}
 
 
 class PagoSchema(BaseModel):
@@ -67,9 +74,12 @@ class PagoState(rx.State):
     # ====================================================
     @rx.event
     async def load_pagos(self):
-        self.is_loading = True
         app_state = await self.get_state(AppState)
-        
+        if not app_state.is_logged_in:
+            self.pagos = []
+            return rx.redirect("/")
+
+        self.is_loading = True
         with SessionLocal() as db:
             # 1. Cargar saldo y TUI del usuario
             if app_state.user_id:
@@ -89,9 +99,12 @@ class PagoState(rx.State):
             # 2. Cargar historial de pagos
             resultados = PagoService.get_all(db, self.search_text, self.filtro_metodo)
             
-            # Si no es admin, filtra solo las propias del usuario
-            if not app_state.is_admin and app_state.user_id:
-                resultados = [p for p in resultados if p.id_usuario == app_state.user_id]
+            # Si no es admin, solo ve sus propios pagos (los visitantes, id 0, ninguno)
+            if not app_state.is_admin:
+                resultados = [
+                    p for p in resultados
+                    if app_state.user_id and p.id_usuario == app_state.user_id
+                ]
 
             self.pagos = [
                 PagoSchema(
@@ -108,7 +121,10 @@ class PagoState(rx.State):
                 for p in resultados
             ]
 
-            # KPIs
+            # KPIs globales: solo para administración
+            if not app_state.is_admin:
+                self.is_loading = False
+                return
             kpis = PagoService.get_kpis(db)
             self.kpi_ingresos = kpis["total_ingresos"]
             self.kpi_operaciones = kpis["total_operaciones"]
@@ -122,54 +138,54 @@ class PagoState(rx.State):
     # ====================================================
     @rx.event
     async def realizar_recarga(self):
+        app_state = await self.get_state(AppState)
+        if not app_state._tiene_rol("estudiante", "profesor") or not app_state.user_id:
+            return rx.window_alert("Solo estudiantes y profesores pueden recargar el monedero TUI.")
+
+        monto = monedero_service.parse_importe(self.monto_recarga)
+        if monto is None:
+            return rx.window_alert("El importe introducido no es un número válido.")
+        if not (RECARGA_MINIMA <= monto <= RECARGA_MAXIMA):
+            return rx.window_alert(
+                f"El importe debe estar entre {RECARGA_MINIMA:.2f} € y {RECARGA_MAXIMA:.2f} €."
+            )
+        if self.metodo_recarga not in METODOS_RECARGA:
+            return rx.window_alert("Método de recarga no válido.")
+
         try:
-            monto_val = float(self.monto_recarga)
-            if monto_val <= 0:
-                return rx.window_alert("Por favor, introduce un importe válido mayor que 0.")
-
-            app_state = await self.get_state(AppState)
-            if not app_state.user_id:
-                return rx.window_alert("Sesión no válida.")
-
             with SessionLocal() as db:
                 exito = PagoService.recargar_saldo_usuario(
-                    db, app_state.user_id, monto_val, self.metodo_recarga
+                    db, app_state.user_id, app_state.user_role, monto, self.metodo_recarga
                 )
+                nuevo_saldo = monedero_service.obtener_saldo(db, app_state.user_id, app_state.user_role)
+        except Exception:
+            logger.exception("Error al recargar el monedero del usuario %s", app_state.user_id)
+            return rx.window_alert("Ha ocurrido un error al procesar la recarga. Inténtalo de nuevo.")
 
-                if exito:
-                    nuevo_saldo = 0.0
-                    est = db.query(Estudiante).filter(Estudiante.id_usuario == app_state.user_id).first()
-                    if est:
-                        nuevo_saldo = float(est.saldo or 0.0)
-                    else:
-                        prof = db.query(Profesor).filter(Profesor.id_usuario == app_state.user_id).first()
-                        if prof:
-                            nuevo_saldo = float(prof.saldo or 0.0)
+        if not exito:
+            return rx.window_alert("No se pudo completar la recarga. Perfil de monedero no encontrado.")
 
-                    # Sincronizar Sidebar y Vista Monedero
-                    app_state.user_saldo = nuevo_saldo
-                    self.saldo_actual = nuevo_saldo
-
-            if exito:
-                msg = f"🎉 ¡Recarga de {monto_val:.2f} € realizada con éxito!"
-                app_state.agregar_notificacion(msg)
-                self.monto_recarga = "10"
-                return [
-                    PagoState.load_pagos,
-                    rx.window_alert(f"¡Recarga completada! Tu nuevo saldo es: {app_state.user_saldo:.2f} €"),
-                ]
-            else:
-                return rx.window_alert("No se pudo completar la recarga. Perfil de monedero no encontrado.")
-
-        except ValueError:
-            return rx.window_alert("El importe introducido no es un número válido.")
+        # Sincronizar Sidebar y Vista Monedero
+        app_state.user_saldo = float(nuevo_saldo or 0)
+        self.saldo_actual = app_state.user_saldo
+        app_state.agregar_notificacion(f"🎉 ¡Recarga de {monto:.2f} € realizada con éxito!")
+        self.monto_recarga = "10"
+        return [
+            PagoState.load_pagos,
+            rx.window_alert(f"¡Recarga completada! Tu nuevo saldo es: {app_state.user_saldo:.2f} €"),
+        ]
 
     @rx.event
     async def cambiar_estado_pago(self, id_pago: int, nuevo_estado: str):
+        app_state = await self.get_state(AppState)
+        if not app_state._tiene_rol("administrador"):
+            return rx.window_alert("No tienes permisos para realizar esta acción.")
+        if nuevo_estado not in ESTADOS_PAGO:
+            return rx.window_alert("Estado de pago no válido.")
+
         with SessionLocal() as db:
             PagoService.cambiar_estado(db, id_pago, nuevo_estado)
 
-        app_state = await self.get_state(AppState)
         app_state.agregar_notificacion(
             f"El pago #{id_pago} ha cambiado a estado {nuevo_estado.upper()}."
         )
