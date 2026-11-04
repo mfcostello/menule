@@ -17,7 +17,7 @@ class PerfilService:
         try:
             if not bcrypt.checkpw(pass_actual_bytes, pass_bd_bytes):
                 return False, "La contraseña actual no es correcta."
-        except Exception as e:
+        except Exception:
             # En caso de que haya contraseñas antiguas en texto plano durante la migración
             if user.contrasena_hash != pass_actual:
                 return False, "La contraseña actual no es correcta."

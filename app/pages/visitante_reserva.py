@@ -1,5 +1,5 @@
 import reflex as rx
-from app.config.precios import PRECIO_ESTUDIANTE_STR, PRECIO_PROFESOR_STR, PRECIO_VISITANTE_STR
+from app.config.precios import PRECIO_VISITANTE_STR
 from app.states.visitante_state import VisitanteState
 from app.states.menu_state import PlatoSimpleSchema
 from app.components.layout import layout

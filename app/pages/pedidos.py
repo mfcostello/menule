@@ -1,7 +1,7 @@
 import reflex as rx
 
 from app.components.layout import layout
-from app.states.pedido_state import PedidoState, PedidoSchema
+from app.states.pedido_state import PedidoState
 
 
 def modal_detalle_pedido() -> rx.Component:

@@ -1,6 +1,6 @@
 import logging
 import reflex as rx
-from datetime import date, datetime
+from datetime import date
 from typing import List
 from app.database import SessionLocal
 from app.config.precios import PRECIO_MENU_VISITANTE

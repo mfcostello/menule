@@ -2,7 +2,7 @@ from datetime import date
 from typing import Optional
 from sqlalchemy import String, or_
 from sqlalchemy.orm import Session, joinedload
-from app.models import Reserva, Usuario, Menu
+from app.models import Reserva, Usuario
 
 
 class PedidoService:
