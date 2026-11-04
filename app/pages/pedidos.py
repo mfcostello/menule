@@ -28,7 +28,7 @@ def modal_detalle_pedido() -> rx.Component:
                         rx.foreach(
                             PedidoState.pedido_seleccionado.platos_lista,
                             lambda plato: rx.hstack(
-                                rx.icon("chef-hat", size=18, color="#7C3AED"),
+                                rx.icon("chef-hat", size=18, color="var(--violet-10)"),
                                 rx.text(plato, size="2", weight="medium"),
                                 spacing="2",
                                 align="center",
@@ -37,7 +37,7 @@ def modal_detalle_pedido() -> rx.Component:
                         spacing="2",
                         width="100%",
                         padding="0.5em",
-                        background="#F9FAFB",
+                        background="var(--gray-2)",
                         border_radius="10px",
                     ),
                     spacing="3",
@@ -105,9 +105,9 @@ def pedidos_page() -> rx.Component:
 
             # METRICAS RÁPIDAS
             rx.grid(
-                tarjeta_metrica("Total Reservas", PedidoState.total_hoy, "receipt", "#F3E8FF", "#7C3AED"),
-                tarjeta_metrica("Pendientes de Entrega", PedidoState.pendientes_hoy, "clock", "#FEF3C7", "#D97706"),
-                tarjeta_metrica("Entregados / Recogidos", PedidoState.recogidos_hoy, "circle-check", "#D1FAE5", "#059669"),
+                tarjeta_metrica("Total Reservas", PedidoState.total_hoy, "receipt", "var(--violet-3)", "var(--violet-10)"),
+                tarjeta_metrica("Pendientes de Entrega", PedidoState.pendientes_hoy, "clock", "var(--amber-3)", "var(--amber-11)"),
+                tarjeta_metrica("Entregados / Recogidos", PedidoState.recogidos_hoy, "circle-check", "var(--green-3)", "var(--green-11)"),
                 columns=rx.breakpoints(initial="1", sm="2", lg="3"),
                 spacing="4",
                 width="100%",

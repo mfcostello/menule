@@ -64,7 +64,7 @@ def fila_ingrediente(ing: IngredienteSchema) -> rx.Component:
 
 def _columna_platos(titulo: str, platos) -> rx.Component:
     return rx.vstack(
-        rx.text(titulo, weight="bold", size="2", color="#7C3AED"),
+        rx.text(titulo, weight="bold", size="2", color="var(--violet-10)"),
         rx.foreach(
             platos,
             lambda p: rx.badge("• " + p.nombre, variant="soft", color_scheme="gray"),
@@ -81,7 +81,7 @@ def desglose_menu_hoy() -> rx.Component:
             MenuState.has_menu_hoy,
             rx.vstack(
                 rx.hstack(
-                    rx.icon("utensils-crossed", size=22, color="#7C3AED"),
+                    rx.icon("utensils-crossed", size=22, color="var(--violet-10)"),
                     rx.heading("Menú activo: " + MenuState.tipo_menu_hoy, size="4"),
                     rx.spacer(),
                     rx.badge(
@@ -115,7 +115,7 @@ def desglose_menu_hoy() -> rx.Component:
         width="100%",
         padding="1.2em",
         border_radius="20px",
-        style={"background": "linear-gradient(135deg, #FFFFFF 0%, #FAF5FF 100%)"},
+        style={"background": "linear-gradient(135deg, var(--color-panel-solid) 0%, var(--violet-2) 100%)"},
     )
 
 
@@ -140,13 +140,13 @@ def stock_view() -> rx.Component:
                 "Total Ingredientes",
                 StockState.total_ingredientes,
                 "package",
-                "#7C3AED",
+                "var(--violet-10)",
             ),
             metric_card(
                 "Ingredientes Críticos",
                 StockState.stock_critico_count,
                 "triangle-alert",
-                "#DC2626",
+                "var(--red-11)",
             ),
             columns=rx.breakpoints(initial="1", sm="2"),
             spacing="4",
@@ -267,7 +267,7 @@ def stock_view() -> rx.Component:
             rx.dialog.content(
                 rx.vstack(
                     rx.hstack(
-                        rx.icon("package-plus", size=22, color="#7C3AED"),
+                        rx.icon("package-plus", size=22, color="var(--violet-10)"),
                         rx.dialog.title("Añadir Nuevo Ingrediente"),
                         align="center",
                         spacing="2",

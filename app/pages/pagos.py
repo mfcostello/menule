@@ -98,8 +98,8 @@ def user_pagos_view() -> rx.Component:
 
         # TARJETA TUI VIRTUAL Y MODAL DE RECARGA
         rx.grid(
-            # Tarjeta Virtual Estilizada
-            rx.card(
+            # Tarjeta Virtual Estilizada (rx.box: rx.card pinta su propio fondo encima del degradado)
+            rx.box(
                 rx.vstack(
                     rx.hstack(
                         rx.text("Tarjeta Universitaria (TUI)", weight="bold", color="white", size="3"),
@@ -109,14 +109,14 @@ def user_pagos_view() -> rx.Component:
                     ),
                     rx.spacer(),
                     rx.vstack(
-                        rx.text("Saldo Disponible", size="2", color="#E5E7EB"),
+                        rx.text("Saldo Disponible", size="2", color="rgba(255,255,255,.75)"),
                         rx.heading(PagoState.saldo_actual_str, size="9", color="white", weight="bold"),
                         align_items="start",
                         spacing="1",
                     ),
                     rx.spacer(),
                     rx.hstack(
-                        rx.text(PagoState.numero_tui, color="#9CA3AF", size="2"),
+                        rx.text(PagoState.numero_tui, color="rgba(255,255,255,.6)", size="2"),
                         rx.spacer(),
                         rx.badge("Activa", color_scheme="green", radius="full"),
                         width="100%",

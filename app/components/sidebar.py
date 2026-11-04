@@ -8,7 +8,7 @@ def _section_title(title: str) -> rx.Component:
         title,
         size="1",
         weight="bold",
-        color="#9CA3AF",
+        color="var(--gray-10)",
         style={"letterSpacing": "0.08em"},
         text_transform="uppercase",
         margin_top="0.5em",
@@ -23,22 +23,22 @@ def sidebar_item(item: NavigationItem) -> rx.Component:
             rx.icon(
                 item.icon,
                 size=18,
-                color=rx.cond(is_active, "#7C3AED", "#6B7280"),
+                color=rx.cond(is_active, "var(--violet-10)", "var(--gray-11)"),
             ),
             rx.text(
                 item.title,
                 weight=rx.cond(is_active, "bold", "medium"),
-                color=rx.cond(is_active, "#111827", "#374151"),
+                color=rx.cond(is_active, "var(--gray-12)", "var(--gray-11)"),
             ),
             spacing="3",
             width="100%",
             padding="0.72em 0.8em",
             border_radius="12px",
-            background=rx.cond(is_active, "rgba(124,58,237,0.10)", "transparent"),
-            border=rx.cond(is_active, "1px solid rgba(124,58,237,0.22)", "1px solid transparent"),
+            background=rx.cond(is_active, "var(--violet-a3)", "transparent"),
+            border=rx.cond(is_active, "1px solid var(--violet-a6)", "1px solid transparent"),
             style={"transition": "all 180ms ease"},
             _hover={
-                "background": "#F3F4F6",
+                "background": "var(--gray-3)",
                 "transform": "translateX(2px)",
             },
         ),
@@ -107,8 +107,8 @@ def _tarjeta_usuario() -> rx.Component:
     return rx.card(
         rx.hstack(
             rx.vstack(
-                rx.text(AppState.user_name, weight="bold", size="2", color="#111827"),
-                rx.text(AppState.user_role, size="1", color="#6B7280"),
+                rx.text(AppState.user_name, weight="bold", size="2", color="var(--gray-12)"),
+                rx.text(AppState.user_role, size="1", color="var(--gray-11)"),
                 spacing="0",
                 align_items="start",
                 min_width="0",
@@ -130,8 +130,8 @@ def _tarjeta_usuario() -> rx.Component:
         padding="0.8em 0.9em",
         style={
             "borderRadius": "14px",
-            "border": "1px solid #E5E7EB",
-            "background": "white",
+            "border": "1px solid var(--gray-5)",
+            "background": "var(--color-panel-solid)",
         },
     )
 
@@ -139,7 +139,7 @@ def _tarjeta_usuario() -> rx.Component:
 def _logo() -> rx.Component:
     return rx.hstack(
         rx.image(src="/logo_menule.png", width="34px", height="34px"),
-        rx.heading("MenULE", size="6", weight="bold", color="#111827"),
+        rx.heading("MenULE", size="6", weight="bold", color="var(--gray-12)"),
         spacing="3",
         align="center",
     )
@@ -168,8 +168,8 @@ def sidebar() -> rx.Component:
             width="272px",
             min_width="272px",
             padding="1.2em",
-            border_right="1px solid #E5E7EB",
-            background="white",
+            border_right="1px solid var(--gray-5)",
+            background="var(--color-panel-solid)",
             position="sticky",
             top="0",
             height="100vh",
@@ -219,7 +219,7 @@ def menu_movil() -> rx.Component:
                     height="100%",
                     top="0",
                     left="0",
-                    background="white",
+                    background="var(--color-panel-solid)",
                     z_index="50",
                 ),
             ),
