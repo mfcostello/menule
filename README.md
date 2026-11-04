@@ -188,6 +188,20 @@ Una vez completado el proceso de compilación inicial, abre tu navegador e ingre
 
 ---
 
+## Tests y calidad de código
+
+Los tests usan una base de datos SQLite en memoria, así que no necesitan MySQL ni `.env`:
+
+```bash
+pip install -r requirements-dev.txt
+pytest          # tests de servicios: monedero, login, reservas, estadísticas
+ruff check .    # lint
+```
+
+GitHub Actions ejecuta lint, tests y `reflex compile --dry` en cada pull request y en cada push a `main` (`.github/workflows/ci.yml`).
+
+---
+
 ## Autoría
 
 **Mario Fernández Costello**
