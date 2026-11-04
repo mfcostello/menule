@@ -5,7 +5,7 @@ from typing import Optional
 from decimal import Decimal
 from pydantic import BaseModel
 
-from app.config.precios import PRECIO_MENU_POR_ROL
+from app.config.precios import PRECIO_MENU_POR_ROL, euros
 from app.database import SessionLocal
 from app.services import monedero_service
 from app.services.menu_service import MenuService
@@ -245,14 +245,14 @@ class MenuState(rx.State):
         nuevo_saldo_float = float(nuevo_saldo)
         app_state.user_saldo = nuevo_saldo_float
 
-        msg_exito = f"🎉 ¡Reserva confirmada con éxito! Se han descontado {precio_menu:.2f}€ de tu TUI."
+        msg_exito = f"🎉 ¡Reserva confirmada con éxito! Se han descontado {euros(precio_menu)} de tu TUI."
         self.plato_1_sel = ""
         self.plato_2_sel = ""
         self.postre_sel = ""
 
         return [
             AppState.agregar_notificacion(msg_exito),
-            rx.window_alert(f"¡Reserva realizada con éxito! Nuevo saldo: {nuevo_saldo_float:.2f} €"),
+            rx.window_alert(f"¡Reserva realizada con éxito! Nuevo saldo: {euros(nuevo_saldo)}"),
         ]
 
     # ======================

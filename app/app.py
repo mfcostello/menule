@@ -24,6 +24,7 @@ from app.states.reserva_state import ReservaState
 from app.states.user_state import UserState
 from app.states.estadistica_state import EstadisticaState
 from app.states.auth_state import AppState
+from app.states.menu_state import MenuState
 
 
 app = rx.App()
@@ -160,7 +161,7 @@ app.add_page(
     stock_page,
     route="/stock",
     title="Inventario de Stock | MenULE",
-    on_load=StockState.cargar_stock,
+    on_load=[StockState.cargar_stock, MenuState.load_menu_del_dia, MenuState.load_resumen_comedor],
 )
 
 # /visitante/reserva se registra en app/pages/visitante_reserva.py con @rx.page

@@ -1,4 +1,5 @@
 import reflex as rx
+from app.config.precios import euros
 from pydantic import BaseModel
 from typing import Optional
 
@@ -132,6 +133,6 @@ class PedidoState(rx.State):
             return rx.window_alert(str(e))
 
         app_state.agregar_notificacion(
-            f"Pedido #{id_reserva} cancelado. Reembolsado al monedero: {devuelto:.2f} €."
+            f"Pedido #{id_reserva} cancelado. Reembolsado al monedero: {euros(devuelto)}."
         )
         return PedidoState.cargar_pedidos

@@ -1,5 +1,7 @@
 import reflex as rx
 from typing import List
+from decimal import Decimal
+from app.config.precios import euros
 from datetime import datetime
 
 from app.config.navigation import NAV_ITEMS, NavigationItem
@@ -39,7 +41,7 @@ class AppState(rx.State):
     # =====================================
     @rx.var
     def user_saldo_str(self) -> str:
-        return f"{self.user_saldo:.2f} €"
+        return euros(Decimal(str(self.user_saldo)))
 
     @rx.var
     def user_role_upper(self) -> str:
