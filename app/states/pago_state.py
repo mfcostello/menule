@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 import reflex as rx
 from pydantic import BaseModel
 from typing import List, Optional, Union
@@ -8,7 +9,7 @@ from app.services.pago_service import PagoService
 from app.states.auth_state import AppState
 from app.models import Estudiante, Profesor
 from app.services import monedero_service
-from app.config.precios import RECARGA_MINIMA, RECARGA_MAXIMA, METODOS_RECARGA
+from app.config.precios import RECARGA_MINIMA, RECARGA_MAXIMA, METODOS_RECARGA, euros
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +148,7 @@ class PagoState(rx.State):
             return rx.window_alert("El importe introducido no es un número válido.")
         if not (RECARGA_MINIMA <= monto <= RECARGA_MAXIMA):
             return rx.window_alert(
-                f"El importe debe estar entre {RECARGA_MINIMA:.2f} € y {RECARGA_MAXIMA:.2f} €."
+                f"El importe debe estar entre {euros(RECARGA_MINIMA)} y {euros(RECARGA_MAXIMA)}."
             )
         if self.metodo_recarga not in METODOS_RECARGA:
             return rx.window_alert("Método de recarga no válido.")
@@ -168,11 +169,11 @@ class PagoState(rx.State):
         # Sincronizar Sidebar y Vista Monedero
         app_state.user_saldo = float(nuevo_saldo or 0)
         self.saldo_actual = app_state.user_saldo
-        app_state.agregar_notificacion(f"🎉 ¡Recarga de {monto:.2f} € realizada con éxito!")
+        app_state.agregar_notificacion(f"🎉 ¡Recarga de {euros(monto)} realizada con éxito!")
         self.monto_recarga = "10"
         return [
             PagoState.load_pagos,
-            rx.window_alert(f"¡Recarga completada! Tu nuevo saldo es: {app_state.user_saldo:.2f} €"),
+            rx.window_alert(f"¡Recarga completada! Tu nuevo saldo es: {euros(nuevo_saldo or Decimal(0))}"),
         ]
 
     @rx.event

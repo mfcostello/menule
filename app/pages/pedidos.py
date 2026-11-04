@@ -199,26 +199,29 @@ def pedidos_page() -> rx.Component:
                                         )
                                     ),
                                     rx.table.cell(
-                                        rx.hstack(
-                                            # Botón Recogida
-                                            rx.button(
-                                                "Recogida",
-                                                color_scheme=rx.cond(p.estado_bit == 1, "green", "gray"),
-                                                variant=rx.cond(p.estado_bit == 1, "solid", "soft"),
-                                                size="1",
-                                                cursor="pointer",
-                                                on_click=lambda: PedidoState.marcar_recogido(p.id_reserva),
+                                        rx.cond(
+                                            # Solo los pedidos pendientes admiten acciones
+                                            (p.estado == "confirmada") | (p.estado == "pendiente"),
+                                            rx.hstack(
+                                                rx.button(
+                                                    "Recogida",
+                                                    color_scheme="green",
+                                                    variant="soft",
+                                                    size="1",
+                                                    cursor="pointer",
+                                                    on_click=lambda: PedidoState.marcar_recogido(p.id_reserva),
+                                                ),
+                                                rx.button(
+                                                    "Cancelar",
+                                                    color_scheme="red",
+                                                    variant="soft",
+                                                    size="1",
+                                                    cursor="pointer",
+                                                    on_click=lambda: PedidoState.marcar_cancelado(p.id_reserva),
+                                                ),
+                                                spacing="2",
                                             ),
-                                            # Botón Cancelar
-                                            rx.button(
-                                                "Cancelar",
-                                                color_scheme=rx.cond(p.estado == "cancelada", "red", "gray"),
-                                                variant=rx.cond(p.estado == "cancelada", "solid", "soft"),
-                                                size="1",
-                                                cursor="pointer",
-                                                on_click=lambda: PedidoState.marcar_cancelado(p.id_reserva),
-                                            ),
-                                            spacing="2",
+                                            rx.text("—", color="gray", size="2"),
                                         )
                                     ),
                                 )

@@ -215,6 +215,12 @@ class AppState(rx.State):
     def is_visitante(self) -> bool:
         return self.user_role == "visitante"
 
+    @rx.event
+    def requerir_sesion(self):
+        """on_load para páginas que requieren sesión (incluida la de visitante)."""
+        if not self.is_logged_in:
+            return rx.redirect("/")
+
     def _tiene_rol(self, *roles: str) -> bool:
         """Comprobación de permisos para usar dentro de los event handlers.
 
